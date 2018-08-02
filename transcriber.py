@@ -3,11 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import speech_recognition as sr
 
-class Transcriber:
-    def __init__(self, filepath, interval=10):
-        self.filepath = filepath
+
+class DeepSpeech2Transcriber(object):
+    def __init__(self, model_path):
+        pass
+
+
+class GoogleCloudTranscriber(object):
+    def __init__(self, interval=10):
+        self.filepath = None
         self.interval = interval
-        self.wav_reader = wave.open(filepath, 'r')
         self.recognizer = sr.Recognizer()
         # self.recognizer.energy_threshold = 150
 
@@ -26,23 +31,23 @@ class Transcriber:
                       "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/starting-account-ily8bej1fmj6%40my-project-1518932773455.iam.gserviceaccount.com"
                     }
                     """
-        BING_KEY = "e79428ef2245453aadb919d18003f74b"
+        # BING_KEY = "e79428ef2245453aadb919d18003f74b"
 
-        context_phrase = """I MAGINE that you are a teacher of Roman history and the Latin language, anxious to
-impart your enthusiasm for the ancient world - for the elegiacs of Ovid and the odes of Horace, the
-sinewy economy of Latin grammar as exhibited in the oratory of Cicero, the strategic niceties of the
-Punic Wars, the generalship of Julius Caesar and the voluptuous excesses of the later emperors.
-That's a big undertaking and it takes time, concentration, dedication. Yet you find your precious
-time continually preyed upon, and your class's attention distracted, by a baying pack of ignoramuses
-(as a Latin scholar you would know better than to say 'ignorami') who, with strong political and
-especially financial support, scurry about tirelessly attempting to persuade your unfortunate pupils
-that the Romans never existed. There never was a Roman Empire. The entire world came into
-existence only just beyond living memory. Spanish, Italian, French, Portuguese, Catalan, Occitan,
-Romansh: all these languages and their constituent dialects sprang spontaneously and separately
-into being, and owe nothing to any predecessor such as Latin. Instead of devoting your full attention
-to the noble vocation of classical scholar and teacher, you are forced to divert your time and energy
-to a rearguard defence of the proposition that the Romans existed at all: a defence against an
-exhibition of ignorant prejudice that would make you weep if you weren't too busy fighting it.""".split(" ")
+#         context_phrase = """IMAGINE that you are a teacher of Roman history and the Latin language, anxious to
+# impart your enthusiasm for the ancient world - for the elegiacs of Ovid and the odes of Horace, the
+# sinewy economy of Latin grammar as exhibited in the oratory of Cicero, the strategic niceties of the
+# Punic Wars, the generalship of Julius Caesar and the voluptuous excesses of the later emperors.
+# That's a big undertaking and it takes time, concentration, dedication. Yet you find your precious
+# time continually preyed upon, and your class's attention distracted, by a baying pack of ignoramuses
+# (as a Latin scholar you would know better than to say 'ignorami') who, with strong political and
+# especially financial support, scurry about tirelessly attempting to persuade your unfortunate pupils
+# that the Romans never existed. There never was a Roman Empire. The entire world came into
+# existence only just beyond living memory. Spanish, Italian, French, Portuguese, Catalan, Occitan,
+# Romansh: all these languages and their constituent dialects sprang spontaneously and separately
+# into being, and owe nothing to any predecessor such as Latin. Instead of devoting your full attention
+# to the noble vocation of classical scholar and teacher, you are forced to divert your time and energy
+# to a rearguard defence of the proposition that the Romans existed at all: a defence against an
+# exhibition of ignorant prejudice that would make you weep if you weren't too busy fighting it.""".split(" ")
 
 
         with sr.AudioFile(filepath) as source:
@@ -51,7 +56,8 @@ exhibition of ignorant prejudice that would make you weep if you weren't too bus
 
             return ("Google Cloud: " + str(self.recognizer.recognize_google_cloud(
                 audio, credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS, language="en-GB",
-                show_all=False, preferred_phrases=context_phrase)))
+                show_all=False, )))
+                # preferred_phrases=context_phrase)))
 
             # print("Microsoft Bing: " + self.recognizer.recognize_bing(audio, key=BING_KEY))
             #print("Sphinx: " + self.recognizer.recognize_sphinx(audio))
@@ -60,7 +66,7 @@ exhibition of ignorant prejudice that would make you weep if you weren't too bus
         except sr.RequestError as e:
             return ("Error; {0}".format(e))
 
-    def plot_recent_signal(self, filepath, start=0):
+    def plot_recent_signal(self, filepath, start=0):  # wrong name, this function was used for debugging
         if self.filepath != filepath:
             self.filepath = filepath
             self.wav_reader = wave.open(filepath, 'r')

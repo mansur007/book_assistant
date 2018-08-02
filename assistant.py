@@ -12,7 +12,8 @@ import player, transcriber
 
 TranscriptDuration = 15
 
-playlist = []
+PL = player.PlayList()
+T = transcriber.GoogleCloudTranscriber()
 
 def ask_playlist():
     # asks directory of a playlist and makes list of songs from it
@@ -21,67 +22,59 @@ def ask_playlist():
 
     for file in os.listdir(dir):
         if file.endswith(".wav"):
-            playlist.append(file)
+            e = player.PLEntry(file)
+            PL.add(e)
             #print(file)
     return
 
 
 def play_track(event):
-    book.play(playlist[index])
+    PL.play()
+
 
 def stop_track(event):
-    book.stop()
+    PL.stop()
 
 
 def prev_track(event):
-    global index
-    if index == min_index:
-        index = max_index
-    else:
-        index -= 1
+    PL.goto_prev()
+
 
 def next_track(event):
-    global index
-    if index == max_index:
-        index = min_index
-    else:
-        index += 1
+    PL.goto_next()
+
 
 def pause_track(event):
-    book.pause()
+    PL.pause()
+
 
 def transcribe_recent(event):
-    offset = max(0, book.current_time() - TranscriptDuration)
-    transcription = transcriber.transcribe_audio(playlist[index], TranscriptDuration, offset)
+    offset = max(0, PL.current_time() - TranscriptDuration)
+    transcription = T.transcribe_audio(PL.get_cur_track_path(), TranscriptDuration, offset)
     transcription_box.insert(0.2, "\n"+transcription+"\n")
 
+
 def get_pos(event):
-    pos = book.current_time()
+    pos = PL.current_time()
     print(pos)
+
 
 def go_to(event):
     target_time = float(target_time_entry.get())
-    book.play(playlist[index], target_time)
+    PL.go_to(target_time)
 
 
 if __name__ == '__main__':
     ask_playlist()
 
-    #### indices of audio in playlist ##############################
-    min_index = 0
-    max_index = len(playlist) - 1
-    index = 0  # song with index 0 in a playlist will play first
-    ################################################################
-
-    book = player.Speaker()
-    transcriber = transcriber.Transcriber(playlist[0])
+    #transcriber = transcriber.Transcriber(playlist[0])
 
     #### GUI #######################################################
     root = Tk()
     listbox = Listbox(root)
     listbox.grid(row=0, rowspan=2)
-    for item in playlist:
-        listbox.insert(0, item)
+    for item in PL.raw_list:
+        listbox.insert(0, item.path)
 
     prev_button = Button(root, text='Prev')
     prev_button.grid(row=0, column=1)
@@ -115,14 +108,12 @@ if __name__ == '__main__':
     go_to_button.grid(row=1, column=3)
     # go_to_button.pack(side=LEFT, fill=X)
 
-
     target_time_entry = Entry(root)
     target_time_entry.grid(row=1, column=4, columnspan=2)
 
     transcription_box = Text(root, wrap=WORD)
     transcription_box.configure(font=("Times New Roman", 14))
     transcription_box.grid(row=2, columnspan=5)
-
 
     play_button.bind("<Button-1>", play_track)
     stop_button.bind("<Button-1>", stop_track)
@@ -132,7 +123,6 @@ if __name__ == '__main__':
     transcribe_button.bind("<Button-1>", transcribe_recent)
     get_pos_button.bind("<Button-1>", get_pos)
     go_to_button.bind("<Button-1>", go_to)
-
 
     root.mainloop()
     #################################################################
