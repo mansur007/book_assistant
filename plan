@@ -1,0 +1,16 @@
+1) find a way to align audio with script
+	Desired function: all words in a text should have a corresponding time offset
+
+2) when audio is playing respond to following voice query: "wait, <function> <word>?"
+	function: search the word in the recently read script
+	          apply inquired function to the word
+
+_) audio player improvement
+	existing functions:
+		play, pause, stop, previous track, next track
+	desired functions:
+		i)progress bar that shows progress of the track
+		ii) there should be a way to play music from any specified position in time:
+			progress bar should be controllable by mouse
+			and there should be buttons that fastforward or rewind by specified amount of time 
+		iii) sortable playlist which shows the currently playing track

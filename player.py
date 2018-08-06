@@ -1,27 +1,33 @@
 from pygame import *
-#import mutagen.MP3
+import numpy as np
 
 
 class PLEntry:
-    def __init__(self, path):
-        self.path = path
+    def __init__(self, audio_path):
+        self.audio_path = audio_path
+        wmap_path = audio_path[:-3]+'wmap.aud'
+        self.intervals = np.genfromtxt(wmap_path, delimiter='\t', usecols=(0, 1), encoding='utf8')
+        self.words = np.genfromtxt(wmap_path, dtype='str', delimiter='\t', usecols=2, encoding='utf8')
         self.time = 0
         self.is_paused = False
 
 
 class PlayList:
     def __init__(self):
-        self.raw_list = []
+        self.entry_list = []
         self.curr_index = 0  # points to a current entry
         self.len = 0
         # mixer.init(frequency=44100)
         mixer.init(frequency=16000)
 
+    def get_cur_track_entry(self):
+        return self.entry_list[self.curr_index]
+
     def get_cur_track_path(self):
-        return self.raw_list[self.curr_index].path
+        return self.entry_list[self.curr_index].audio_path
 
     def add(self, entry):
-        self.raw_list.append(entry)
+        self.entry_list.append(entry)
         self.len += 1
 
     def play(self, target_time=None):
@@ -29,26 +35,26 @@ class PlayList:
         if target_time is not None:
             print("target time:", target_time)
             mixer.music.play(start=target_time)
-        elif self.raw_list[self.curr_index].is_paused:
+        elif self.entry_list[self.curr_index].is_paused:
             print("unpause...")
-            self.raw_list[self.curr_index].is_paused = False
+            self.entry_list[self.curr_index].is_paused = False
             mixer.music.unpause()
         elif mixer.music.get_busy():
             print("busy...")
             return self
         else:
-            path = self.raw_list[self.curr_index].path
-            mixer.music.load(path)
+            audio_path = self.entry_list[self.curr_index].audio_path
+            mixer.music.load(audio_path)
             mixer.music.play()
 
     def stop(self):
         print("stop")
-        self.raw_list[self.curr_index].is_paused = False
+        self.entry_list[self.curr_index].is_paused = False
         mixer.music.stop()
 
     def pause(self):
         print("pause")
-        self.raw_list[self.curr_index].is_paused = True
+        self.entry_list[self.curr_index].is_paused = True
         mixer.music.pause()
 
     def current_time(self):
@@ -61,12 +67,12 @@ class PlayList:
 
     def goto_prev(self):
         if self.curr_index == 0:
-            self.curr_index = len(self.raw_list) - 1
+            self.curr_index = len(self.entry_list) - 1
         else:
             self.curr_index -= 1
 
     def goto_next(self):
-        if self.curr_index == (len(self.raw_list) - 1):
+        if self.curr_index == (len(self.entry_list) - 1):
             self.curr_index = 0
         else:
             self.curr_index += 1
