@@ -6,6 +6,7 @@ import numpy as np
 
 import player
 import transcriber
+import text_processor
 
 # import wave
 # import pydub # open almost any format, slice
@@ -80,7 +81,8 @@ def transcribe_recent(event):
 
 def transcribe_speech(event):
     transcription = T.transcribe_speech()
-    transcription_box.insert(0.2, "\n" + transcription + "\n")
+    transcription_box.insert(0.2, "\nUser: {}\n".format(transcription))
+    print("parsed command: {}\n".format(text_processor.parse_command(transcription)))
 
 # shows 20 seconds from true transcript, which are nearest to current time
 def show_transcript(event):

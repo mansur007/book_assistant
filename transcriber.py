@@ -70,7 +70,7 @@ class GoogleCloudTranscriber(object):
             audio = self.recognizer.listen(source)
 
         try:
-            return "User: {}".format(self.recognizer.recognize_google(audio))
+            return self.recognizer.recognize_google(audio)
         except LookupError:
             print("Could not understand audio")
 
