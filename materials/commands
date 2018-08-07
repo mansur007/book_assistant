@@ -1,1 +1,0 @@
-python -m aeneas.tools.execute_task christmascarol_01_dickens.mp3 christmascarol_01_dickens.words.txt "task_language=eng|is_text_type=plain|os_task_file_format=aud" wmap.words.aud --presets-word -r="tts_l1=espeak|tts_l2=aws|tts_l3=aws"
