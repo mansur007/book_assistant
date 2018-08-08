@@ -2,7 +2,7 @@ import os
 from tkinter import *
 from tkinter.filedialog import askdirectory
 import argparse
-import threading
+import time
 
 import player
 import transcriber
@@ -38,6 +38,18 @@ args = parser.parse_args()
 TranscriptDuration = 15
 
 PL = player.PlayList()
+def update_script():
+    global cur_interval_start, cur_interval_end
+    t = max(PL.current_time(), 0)
+    if t > cur_interval_end or t < cur_interval_start:
+        utterance = PL.get_utterance(t)
+        transcription_box.insert('end', '{}\n'.format(utterance['text']))
+        transcription_box.see('end')
+        cur_interval_start = utterance['start_time']
+        cur_interval_end = utterance['end_time']
+    time.sleep(0.1)
+    root.after(25, update_script)
+
 T = transcriber.GoogleCloudTranscriber()
 # T = transcriber.DeepSpeech2Transcriber(args)
 
@@ -185,8 +197,8 @@ if __name__ == '__main__':
     speak_button.bind("<Button-1>", transcribe_speech)
     show_transcript_button.bind("<Button-1>", show_transcript)
 
-
-
-
+    cur_interval_start = PL.get_cur_track_entry().utt_intervals[0, 0]
+    cur_interval_end = PL.get_cur_track_entry().utt_intervals[0, 1]
+    root.after(25, update_script)
     root.mainloop()
     #################################################################

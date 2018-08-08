@@ -11,7 +11,6 @@ class PLEntry:
         self.utt_intervals = np.genfromtxt(uttmap_path, delimiter='\t', usecols=(0, 1), encoding='utf8')
         self.words = np.genfromtxt(wmap_path, dtype='str', delimiter='\t', usecols=2, encoding='utf8')
         self.utterances = np.genfromtxt(uttmap_path, dtype='str', delimiter='\t', usecols=2, encoding='utf8')
-        self.time = 0
         self.is_paused = False
 
 
@@ -79,3 +78,13 @@ class PlayList:
             self.curr_index = 0
         else:
             self.curr_index += 1
+
+    def get_utterance(self, t):
+        utterances = self.get_cur_track_entry().utterances
+        utt_intervals = self.get_cur_track_entry().utt_intervals
+        cur_utterance = np.asscalar(utterances[(utt_intervals[:, 0] <= t) & (utt_intervals[:, 1] >= t)])
+        cur_utt_interval = utt_intervals[(utt_intervals[:, 0] <= t) & (utt_intervals[:, 1] >= t)]
+        cur_utt_interval = np.reshape(cur_utt_interval, -1)
+        return {'text': cur_utterance,
+                'start_time': cur_utt_interval[0],
+                'end_time': cur_utt_interval[1]}
