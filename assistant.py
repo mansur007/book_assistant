@@ -2,7 +2,7 @@ import os
 from tkinter import *
 from tkinter.filedialog import askdirectory
 import argparse
-import numpy as np
+import threading
 
 import player
 import transcriber
@@ -77,12 +77,14 @@ def pause_track(event):
 def transcribe_recent(event):
     offset = max(0, PL.current_time() - TranscriptDuration)
     transcription = T.transcribe_audio(PL.get_cur_track_path(), TranscriptDuration, offset)
-    transcription_box.insert(0.2, "\n"+transcription+"\n")
+    dialogue_box.insert(0.2, "\n"+transcription+"\n")
+
 
 def transcribe_speech(event):
     transcription = T.transcribe_speech()
-    transcription_box.insert(0.2, "\nUser: {}\n".format(transcription))
+    dialogue_box.insert(0.2, "\nUser: {}\n".format(transcription))
     print("parsed command: {}\n".format(text_processor.parse_command(transcription)))
+
 
 # shows 20 seconds from true transcript, which are nearest to current time
 def show_transcript(event):
@@ -97,7 +99,8 @@ def show_transcript(event):
 
     transcript = words[(w_intervals[:, 0] >= start_time) & (w_intervals[:, 1] <= end_time)]
 
-    transcription_box.insert(0.2, "\ngiven script: " + ' '.join(transcript) + "\n")
+    transcription_box.insert(END, ' '.join(transcript) + "\n")
+    transcription_box.see("end")
 
 def get_pos(event):
     pos = PL.current_time()
@@ -154,9 +157,16 @@ if __name__ == '__main__':
     target_time_entry = Entry(root)
     target_time_entry.grid(row=1, column=4, columnspan=2)
 
-    transcription_box = Text(root, wrap=WORD)
+    dialogue_box = Text(root, wrap=WORD, height=7)
+    dialogue_box.configure(font=("Times New Roman", 14))
+    dialogue_box.grid(row=3, columnspan=5)
+
+    transcription_box = Text(root, wrap=WORD, height=15)
     transcription_box.configure(font=("Times New Roman", 14))
-    transcription_box.grid(row=3, columnspan=5)
+    transcription_box.grid(row=4, columnspan=5)
+    transcription_scrollbar = Scrollbar(root, orient="vertical", command=transcription_box.yview)
+    transcription_box.configure(yscrollcommand=transcription_scrollbar.set)
+    transcription_scrollbar.grid(row=4, column=6)
 
     show_transcript_button = Button(root, text='Show Transcript')
     show_transcript_button.grid(row=2, column=3)
@@ -174,6 +184,9 @@ if __name__ == '__main__':
     go_to_button.bind("<Button-1>", go_to)
     speak_button.bind("<Button-1>", transcribe_speech)
     show_transcript_button.bind("<Button-1>", show_transcript)
+
+
+
 
     root.mainloop()
     #################################################################
