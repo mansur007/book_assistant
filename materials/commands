@@ -1,0 +1,5 @@
+# align audio and text line by line
+python -m aeneas.tools.execute_task book.mp3 book.txt "task_language=eng|is_text_type=plain|os_task_file_format=aud" book.map.aud [--presets-word -r="tts_l1=espeak|tts_l2=aws|tts_l3=aws]"
+
+# replace characters in a file
+tr ' ' '\n' < christmascarol_01_dickens > christmascarol_01_dickens.words\n

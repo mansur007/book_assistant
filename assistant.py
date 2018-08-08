@@ -89,13 +89,13 @@ def show_transcript(event):
     cur_time = PL.current_time()
 
     cur_track_entry = PL.get_cur_track_entry()
-    intervals = cur_track_entry.intervals
+    w_intervals = cur_track_entry.w_intervals
     words = cur_track_entry.words
 
     start_time = max(cur_time - 10, 0)
-    end_time = min(cur_time + 10, intervals[-1][1])
+    end_time = min(cur_time + 10, w_intervals[-1][1])
 
-    transcript = words[(intervals[:, 0] >= start_time) & (intervals[:, 1] <= end_time)]
+    transcript = words[(w_intervals[:, 0] >= start_time) & (w_intervals[:, 1] <= end_time)]
 
     transcription_box.insert(0.2, "\ngiven script: " + ' '.join(transcript) + "\n")
 

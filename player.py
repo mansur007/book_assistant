@@ -6,8 +6,11 @@ class PLEntry:
     def __init__(self, audio_path):
         self.audio_path = audio_path
         wmap_path = audio_path[:-3]+'wmap.aud'
-        self.intervals = np.genfromtxt(wmap_path, delimiter='\t', usecols=(0, 1), encoding='utf8')
+        uttmap_path = audio_path[:-3]+'uttmap.aud'
+        self.w_intervals = np.genfromtxt(wmap_path, delimiter='\t', usecols=(0, 1), encoding='utf8')
+        self.utt_intervals = np.genfromtxt(uttmap_path, delimiter='\t', usecols=(0, 1), encoding='utf8')
         self.words = np.genfromtxt(wmap_path, dtype='str', delimiter='\t', usecols=2, encoding='utf8')
+        self.utterances = np.genfromtxt(uttmap_path, dtype='str', delimiter='\t', usecols=2, encoding='utf8')
         self.time = 0
         self.is_paused = False
 

@@ -3,3 +3,12 @@ pygame
 SpeechRecognition
 wave
 python-levenshtein
+aeneas
+
+# google tts:
+msgpack
+gTTS
+
+# dictionaries, translators, etc.
+PyDictionary
+--upgrade google-cloud-translate
