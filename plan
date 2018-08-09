@@ -19,6 +19,11 @@
         1) (translate <word>) into <language>
 
 
+3) find a word in the context that matches the one requested by user
+
+4) same as 3 but with phrase
+
+
 _) audio player improvement
 	existing functions:
 		play, pause, stop, previous track, next track

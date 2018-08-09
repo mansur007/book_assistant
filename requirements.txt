@@ -4,6 +4,9 @@ SpeechRecognition
 wave
 python-levenshtein
 aeneas
+pyaudio
+librosa
+
 
 # google tts:
 msgpack

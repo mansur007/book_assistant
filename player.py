@@ -1,6 +1,6 @@
 from pygame import *
 import numpy as np
-
+import sys
 
 class PLEntry:
     def __init__(self, audio_path):
@@ -51,6 +51,7 @@ class PlayList:
 
     def stop(self):
         print("stop")
+        mixer.music.pause()  # to stop position from being incremented
         self.entry_list[self.curr_index].is_paused = False
         mixer.music.stop()
 
@@ -85,6 +86,23 @@ class PlayList:
         cur_utterance = np.asscalar(utterances[(utt_intervals[:, 0] <= t) & (utt_intervals[:, 1] >= t)])
         cur_utt_interval = utt_intervals[(utt_intervals[:, 0] <= t) & (utt_intervals[:, 1] >= t)]
         cur_utt_interval = np.reshape(cur_utt_interval, -1)
+
+        # print(cur_utterance)
+        # print(cur_utt_interval)
+        sys.stdout.flush()
         return {'text': cur_utterance,
                 'start_time': cur_utt_interval[0],
                 'end_time': cur_utt_interval[1]}
+
+    def get_recent_words(self, duration=10):
+        cur_time = self.current_time()
+
+        cur_track_entry = self.get_cur_track_entry()
+        w_intervals = cur_track_entry.w_intervals
+        words = cur_track_entry.words
+
+        start_time = max(cur_time - duration, 0)
+        end_time = min(cur_time, w_intervals[-1][1])
+
+        recent_words = words[(w_intervals[:, 0] >= start_time) & (w_intervals[:, 1] <= end_time)]
+        return recent_words

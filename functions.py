@@ -9,6 +9,7 @@ import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=\
     "/home/mans/pycharm_projects/audiobook_assistant/audiobook-assistant-9703181ebcfe.json"
 
+
 class Dictionary(object):
     def __init__(self):
         self.dictionary = PyDictionary()
@@ -28,7 +29,7 @@ class Dictionary(object):
 if __name__ == '__main__':
     d = Dictionary()
     word = u'good'
-    # translation = d.translate(word, 'ru')
-    # print(u'Translation: {}'.format(translation['translatedText']))
+    translation = d.translate(word, 'ru')
+    print(u'Translation: {}'.format(translation['translatedText']))
     print(d.define(word))
     print(d.find_synonym_of(word))

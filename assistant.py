@@ -7,6 +7,7 @@ import time
 import player
 import transcriber
 import text_processor
+import functions
 
 # import wave
 # import pydub # open almost any format, slice
@@ -17,7 +18,7 @@ import text_processor
 parser = argparse.ArgumentParser(description='DeepSpeech2 transcription')
 parser.add_argument('--model_path', default='deepspeech/models/librispeech_pretrained.pth',
                     help='Path to model file created by training')
-parser.add_argument('--decoder', default="beam", choices=["greedy", "beam"], type=str, help="Decoder to use")
+parser.add_argument('--decoder', default="greedy", choices=["greedy", "beam"], type=str, help="Decoder to use")
 parser.add_argument('--offsets', dest='offsets', action='store_true', help='Returns time offset information')
 beam_args = parser.add_argument_group("Beam Decode Options", "Configurations options for the CTC Beam Search decoder")
 beam_args.add_argument('--top_paths', default=1, type=int, help='number of beams to return')
@@ -35,23 +36,26 @@ beam_args.add_argument('--lm_workers', default=1, type=int, help='Number of LM p
 args = parser.parse_args()
 
 
-TranscriptDuration = 15
+TranscriptDuration = 8
 
 PL = player.PlayList()
+
+
 def update_script():
     global cur_interval_start, cur_interval_end
     t = max(PL.current_time(), 0)
     if t > cur_interval_end or t < cur_interval_start:
         utterance = PL.get_utterance(t)
-        transcription_box.insert('end', '{}\n'.format(utterance['text']))
+        transcription_box.insert('end', '{}\n\n'.format(utterance['text']))
         transcription_box.see('end')
         cur_interval_start = utterance['start_time']
         cur_interval_end = utterance['end_time']
-    time.sleep(0.1)
-    root.after(25, update_script)
+    root.after(10, update_script)
 
-T = transcriber.GoogleCloudTranscriber()
+
+T = transcriber.GoogleTranscriber()
 # T = transcriber.DeepSpeech2Transcriber(args)
+D = functions.Dictionary()
 
 def ask_playlist():
     # asks directory of a playlist and makes list of songs from it
@@ -89,29 +93,26 @@ def pause_track(event):
 def transcribe_recent(event):
     offset = max(0, PL.current_time() - TranscriptDuration)
     transcription = T.transcribe_audio(PL.get_cur_track_path(), TranscriptDuration, offset)
-    dialogue_box.insert(0.2, "\n"+transcription+"\n")
+    dialogue_box.insert(0.2, transcription+"\n\n")
 
 
 def transcribe_speech(event):
     transcription = T.transcribe_speech()
-    dialogue_box.insert(0.2, "\nUser: {}\n".format(transcription))
-    print("parsed command: {}\n".format(text_processor.parse_command(transcription)))
+    dialogue_box.insert(0.2, "User: {}\n\n".format(transcription))
+    parsed_command = text_processor.parse_command(transcription)
+    if parsed_command['func'] == 'translate':
+        translation = D.translate(parsed_command['phrase'], 'ru')
+        dialogue_box.insert(0.2, "translation of {}: {}\n\n".
+                            format(parsed_command['phrase'][0], translation[0]['translatedText']))
+
+    print("parsed command: {}\n".format(parsed_command))
 
 
-# shows 20 seconds from true transcript, which are nearest to current time
-def show_transcript(event):
-    cur_time = PL.current_time()
 
-    cur_track_entry = PL.get_cur_track_entry()
-    w_intervals = cur_track_entry.w_intervals
-    words = cur_track_entry.words
-
-    start_time = max(cur_time - 10, 0)
-    end_time = min(cur_time + 10, w_intervals[-1][1])
-
-    transcript = words[(w_intervals[:, 0] >= start_time) & (w_intervals[:, 1] <= end_time)]
-
-    transcription_box.insert(END, ' '.join(transcript) + "\n")
+# shows the most recent words from provided transcript
+def show_recent_words(event):
+    recent_words = PL.get_recent_words()
+    dialogue_box.insert(0.2, ' '.join(recent_words) + "\n\n")
     transcription_box.see("end")
 
 def get_pos(event):
@@ -180,8 +181,8 @@ if __name__ == '__main__':
     transcription_box.configure(yscrollcommand=transcription_scrollbar.set)
     transcription_scrollbar.grid(row=4, column=6)
 
-    show_transcript_button = Button(root, text='Show Transcript')
-    show_transcript_button.grid(row=2, column=3)
+    show_recent_words_button = Button(root, text='Show Recent Words')
+    show_recent_words_button.grid(row=2, column=3)
 
     speak_button = Button(root, text='Voice Command')
     speak_button.grid(row=2, column=2)
@@ -195,10 +196,14 @@ if __name__ == '__main__':
     get_pos_button.bind("<Button-1>", get_pos)
     go_to_button.bind("<Button-1>", go_to)
     speak_button.bind("<Button-1>", transcribe_speech)
-    show_transcript_button.bind("<Button-1>", show_transcript)
+    show_recent_words_button.bind("<Button-1>", show_recent_words)
 
-    cur_interval_start = PL.get_cur_track_entry().utt_intervals[0, 0]
-    cur_interval_end = PL.get_cur_track_entry().utt_intervals[0, 1]
-    root.after(25, update_script)
+    # cur_interval_start = PL.get_cur_track_entry().utt_intervals[0, 0]
+    # cur_interval_end = PL.get_cur_track_entry().utt_intervals[0, 1]
+    # making sure that first utterance shows up:
+    cur_interval_start = -0.001
+    cur_interval_end = 0
+
+    root.after(10, update_script)
     root.mainloop()
     #################################################################
