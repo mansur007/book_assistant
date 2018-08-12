@@ -45,12 +45,17 @@ def update_script():
     global cur_interval_start, cur_interval_end
     t = max(PL.current_time(), 0)
     if t > cur_interval_end or t < cur_interval_start:
+        # print("t: {}, cur_interval_start: {}, cur_interval_end: {}".
+        #       format(t, cur_interval_start, cur_interval_end))
+        # sys.stdout.flush()
+
         utterance = PL.get_utterance(t)
-        transcription_box.insert('end', '{}\n\n'.format(utterance['text']))
-        transcription_box.see('end')
         cur_interval_start = utterance['start_time']
         cur_interval_end = utterance['end_time']
-    root.after(10, update_script)
+        transcription_box.insert('end', '{}\n\n'.format(utterance['text']))
+        transcription_box.see('end')
+
+    root.after(150, update_script)
 
 
 T = transcriber.GoogleTranscriber()
@@ -71,8 +76,9 @@ def ask_playlist():
 
 
 def play_track(event):
-    PL.play()
-
+    is_unpausing = PL.play()
+    if is_unpausing is True:
+        skip_update = True
 
 def stop_track(event):
     PL.stop()
@@ -204,6 +210,6 @@ if __name__ == '__main__':
     cur_interval_start = -0.001
     cur_interval_end = 0
 
-    root.after(10, update_script)
+    root.after(50, update_script)
     root.mainloop()
     #################################################################

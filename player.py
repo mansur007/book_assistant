@@ -12,6 +12,8 @@ class PLEntry:
         self.words = np.genfromtxt(wmap_path, dtype='str', delimiter='\t', usecols=2, encoding='utf8')
         self.utterances = np.genfromtxt(uttmap_path, dtype='str', delimiter='\t', usecols=2, encoding='utf8')
         self.is_paused = False
+        self.pause_time = None  # needed when paused, otherwise pause hard to get time when track is paused
+                             # pygame bug(?)
 
 
 class PlayList:
@@ -21,6 +23,9 @@ class PlayList:
         self.len = 0
         # mixer.init(frequency=44100)
         mixer.init(frequency=16000)
+
+    def is_paused(self):
+        return self.get_cur_track_entry().is_paused
 
     def get_cur_track_entry(self):
         return self.entry_list[self.curr_index]
@@ -33,21 +38,24 @@ class PlayList:
         self.len += 1
 
     def play(self, target_time=None):
-        #print(mixer.music.get_pos())
+        # returns True when unpausing, false otherwise
         if target_time is not None:
             print("target time:", target_time)
             mixer.music.play(start=target_time)
+            return False
         elif self.entry_list[self.curr_index].is_paused:
             print("unpause...")
             self.entry_list[self.curr_index].is_paused = False
             mixer.music.unpause()
+            return True
         elif mixer.music.get_busy():
             print("busy...")
-            return self
+            return False
         else:
             audio_path = self.entry_list[self.curr_index].audio_path
             mixer.music.load(audio_path)
             mixer.music.play()
+            return False
 
     def stop(self):
         print("stop")
@@ -57,11 +65,18 @@ class PlayList:
 
     def pause(self):
         print("pause")
+        entry = self.get_cur_track_entry()
+        entry.pause_time = mixer.music.get_pos()/1000
         self.entry_list[self.curr_index].is_paused = True
         mixer.music.pause()
 
     def current_time(self):
-        return mixer.music.get_pos()/1000
+        if not self.get_cur_track_entry().is_paused and self.get_cur_track_entry().pause_time is not None:
+            t = self.get_cur_track_entry().pause_time
+            self.get_cur_track_entry().pause_time = None
+            return t
+        else:
+            return mixer.music.get_pos()/1000
 
     def go_to(self, target_time):
         self.stop()
