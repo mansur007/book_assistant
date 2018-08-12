@@ -6,6 +6,23 @@ def cer(s1, s2):
     return Lev.distance(s1, s2)
 
 
+def find_most_similar_word(word, excerpt):
+    if isinstance(excerpt, str):
+        excerpt = excerpt.split()
+    elif not isinstance(excerpt, list):
+        # assume it is string
+        assert(isinstance(excerpt, str)), "'excerpt' argument is neither string nor list of words"
+    assert(len(excerpt)), "length of word_list is zero"
+
+    min_cer = float('inf')
+    for w in excerpt:
+        cer_distance = cer(word, w)
+        if cer_distance < min_cer:
+            best_match = w
+            min_cer = cer_distance
+    return best_match
+
+
 def parse_command(command):
     word_list = command.split()
     print(word_list)
@@ -65,6 +82,7 @@ def parse_command(command):
                 phrase = word_list[i+1:]
             return {'func': 'define', 'phrase': phrase, 'args': []}
 
+
 def test_cer():
     s1 = 'seek'
     s2 = 'sick'
@@ -73,3 +91,4 @@ def test_cer():
 if __name__ == '__main__':
     # test_cer()
     print(parse_command('what is synonim of conor'))
+    print(find_most_similar_word('conor', 'He was sitting still in the corner'))

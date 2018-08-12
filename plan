@@ -13,7 +13,7 @@
         4) spell out <word>
         5) possibility of using "it" instead of <word> in case if some function was applied on it
                                                                                             earlier
-        6) or same as 5 but without "it", e.g. "translate", "synonims", etc.
+        6) or same as (5) but without "it", e.g. "translate", "synonims", etc.
 
     Options:
         1) (translate <word>) into <language>
@@ -33,3 +33,10 @@ _) audio player improvement
 			progress bar should be controllable by mouse
 			and there should be buttons that fastforward or rewind by specified amount of time 
 		iii) sortable playlist which shows the currently playing track
+
+
+
+
+etc)
+ cross platform app development:
+ xamarin, flutter
