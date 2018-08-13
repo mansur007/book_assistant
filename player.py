@@ -12,15 +12,14 @@ class PLEntry:
         self.words = np.genfromtxt(wmap_path, dtype='str', delimiter='\t', usecols=2, encoding='utf8')
         self.utterances = np.genfromtxt(uttmap_path, dtype='str', delimiter='\t', usecols=2, encoding='utf8')
         self.is_paused = False
-        self.pause_time = None  # needed when paused, otherwise pause hard to get time when track is paused
-                             # pygame bug(?)
+        self.pause_time = None  # needed for unpausing, otherwise hard to get correct position of a track,
+                                # that's probably pygame issue(?)
 
 
 class PlayList:
     def __init__(self):
         self.entry_list = []
         self.curr_index = 0  # points to a current entry
-        self.len = 0
         # mixer.init(frequency=44100)
         mixer.init(frequency=16000)
 
@@ -35,7 +34,6 @@ class PlayList:
 
     def add(self, entry):
         self.entry_list.append(entry)
-        self.len += 1
 
     def play(self, target_time=None):
         # returns True when unpausing, false otherwise
@@ -120,4 +118,4 @@ class PlayList:
         end_time = min(cur_time, w_intervals[-1][1])
 
         recent_words = words[(w_intervals[:, 0] >= start_time) & (w_intervals[:, 1] <= end_time)]
-        return recent_words
+        return list(recent_words)

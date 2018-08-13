@@ -29,7 +29,7 @@ def parse_command(command):
     for i in range(len(word_list)):
         word = word_list[i]
         phrase = []
-        if cer(word, 'translate') <= 2:
+        if cer(word, 'translate') <= 3:
             if i+1 == len(word_list):
                 phrase.append('it')
                 rest = []
@@ -49,38 +49,40 @@ def parse_command(command):
                         phrase.append(rest[j])
 
             return {'func': 'translate', 'phrase': phrase, 'args': args}
-        elif cer(word, 'synonym') <= 2:
+        elif cer(word, 'synonym') <= 3:
             if i+2 >= len(word_list):  # just 'synonym of' will be regarded as 'synonym of it'
                 phrase = ['it']
             else:
                 phrase = word_list[i+2:]
             return {'func': 'synonym', 'phrase': phrase, 'args': []}
-        elif cer(word, 'spell') <= 1:
-            if i+1 == len(word_list):
-                phrase = ['it']
-            else:
-                phrase = word_list[i+1:]
-            return {'func': 'spell', 'phrase': phrase, 'args': []}
-        elif cer(word, 'what') <= 1:
-            if cer(word_list[i+2], 'synonym') <= 2:
-                if i + 4 >= len(word_list):  # just 'synonym of' will be regarded as 'synonym of it'
-                    phrase = ['it']
-                else:
-                    phrase = word_list[i + 4:]
-                return {'func': 'synonym', 'phrase': phrase, 'args': []}
-        elif cer(word, 'find') <= 1:
-            if cer(word_list[i+1], 'synonym') <= 2:
-                if i + 3 >= len(word_list):  # just 'synonym of' will be regarded as 'synonym of it'
-                    phrase = ['it']
-                else:
-                    phrase = word_list[i + 3:]
-                return {'func': 'synonym', 'phrase': phrase, 'args': []}
-        else:
+        # elif cer(word, 'spell') <= 1:
+        #     if i+1 == len(word_list):
+        #         phrase = ['it']
+        #     else:
+        #         phrase = word_list[i+1:]
+        #     return {'func': 'spell', 'phrase': phrase, 'args': []}
+        # elif cer(word, 'what') <= 1:
+        #     if cer(word_list[i+2], 'synonym') <= 2:
+        #         if i + 4 >= len(word_list):  # just 'synonym of' will be regarded as 'synonym of it'
+        #             phrase = ['it']
+        #         else:
+        #             phrase = word_list[i + 4:]
+        #         return {'func': 'synonym', 'phrase': phrase, 'args': []}
+        # elif cer(word, 'find') <= 1:
+        #     if cer(word_list[i+1], 'synonym') <= 2:
+        #         if i + 3 >= len(word_list):  # just 'synonym of' will be regarded as 'synonym of it'
+        #             phrase = ['it']
+        #         else:
+        #             phrase = word_list[i + 3:]
+        #         return {'func': 'synonym', 'phrase': phrase, 'args': []}
+        elif cer(word, 'define') <= 3:
             if i+1 == len(word_list):
                 phrase = ['it']
             else:
                 phrase = word_list[i+1:]
             return {'func': 'define', 'phrase': phrase, 'args': []}
+        else:
+            return {'func': 'unknown'}
 
 
 def test_cer():
@@ -90,5 +92,5 @@ def test_cer():
 
 if __name__ == '__main__':
     # test_cer()
-    print(parse_command('what is synonim of conor'))
+    print(parse_command('define conor'))
     print(find_most_similar_word('conor', 'He was sitting still in the corner'))

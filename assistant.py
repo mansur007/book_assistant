@@ -62,6 +62,7 @@ T = transcriber.GoogleTranscriber()
 # T = transcriber.DeepSpeech2Transcriber(args)
 D = functions.Dictionary()
 
+
 def ask_playlist():
     # asks directory of a playlist and makes list of songs from it
     dir = askdirectory()
@@ -80,17 +81,23 @@ def play_track(event):
     if is_unpausing is True:
         skip_update = True
 
+
 def stop_track(event):
     PL.stop()
 
 
 def prev_track(event):
     PL.goto_prev()
+    track_list.selection_clear(0, END)
+    track_list.selection_set(PL.curr_index)
+    track_list.activate(PL.curr_index)
 
 
 def next_track(event):
     PL.goto_next()
-
+    track_list.selection_clear(0, END)
+    track_list.selection_set(PL.curr_index)
+    track_list.activate(PL.curr_index)
 
 def pause_track(event):
     PL.pause()
@@ -102,17 +109,46 @@ def transcribe_recent(event):
     dialogue_box.insert(0.2, transcription+"\n\n")
 
 
-def transcribe_speech(event):
+def process_speech(event):
     transcription = T.transcribe_speech()
     dialogue_box.insert(0.2, "User: {}\n\n".format(transcription))
     parsed_command = text_processor.parse_command(transcription)
-    if parsed_command['func'] == 'translate':
-        translation = D.translate(parsed_command['phrase'], 'ru')
+    if parsed_command['func'] != 'unknown' and parsed_command['phrase'] == 'it':
+        dialogue_box.insert(0.2, "assistant could not comprehend the target phrase\n\n")
+
+    elif parsed_command['func'] == 'translate':
+        recently_played_words = PL.get_recent_words()
+
+        target_word = None
+        max_len = 0
+        for w in parsed_command['phrase']:
+            if len(w) > max_len:
+                target_word = w
+                max_len = len(w)
+        target_word = text_processor.find_most_similar_word(target_word, recently_played_words)
+
+        translation_dict = D.translate(target_word, 'ru')
+        translation = translation_dict['translatedText']
         dialogue_box.insert(0.2, "translation of {}: {}\n\n".
-                            format(parsed_command['phrase'][0], translation[0]['translatedText']))
+                            format(target_word, translation))
+
+    elif parsed_command['func'] == 'define':
+        recently_played_words = PL.get_recent_words()
+
+        phrase = parsed_command['phrase']
+        target_word = None
+        max_len = 0
+        for w in phrase:
+            if len(w) > max_len:
+                target_word = w
+                max_len = len(w)
+        target_word = text_processor.find_most_similar_word(target_word, recently_played_words)
+
+        definition = D.define(target_word)
+        dialogue_box.insert(0.2, "definition of {}: {}\n\n".
+                            format(target_word, definition))
 
     print("parsed command: {}\n".format(parsed_command))
-
 
 
 # shows the most recent words from provided transcript
@@ -120,6 +156,7 @@ def show_recent_words(event):
     recent_words = PL.get_recent_words()
     dialogue_box.insert(0.2, ' '.join(recent_words) + "\n\n")
     transcription_box.see("end")
+
 
 def get_pos(event):
     pos = PL.current_time()
@@ -136,10 +173,12 @@ if __name__ == '__main__':
 
     #### GUI #######################################################
     root = Tk()
-    listbox = Listbox(root)
-    listbox.grid(row=0, rowspan=2)
+    track_list = Listbox(root, selectmode=SINGLE)
+    track_list.grid(row=0, rowspan=2)
     for item in PL.entry_list:
-        listbox.insert(0, item.audio_path)
+        track_list.insert(END, item.audio_path)
+    track_list.selection_set(0)
+    track_list.activate(0)
 
     prev_button = Button(root, text='Prev')
     prev_button.grid(row=0, column=1)
@@ -201,7 +240,7 @@ if __name__ == '__main__':
     transcribe_button.bind("<Button-1>", transcribe_recent)
     get_pos_button.bind("<Button-1>", get_pos)
     go_to_button.bind("<Button-1>", go_to)
-    speak_button.bind("<Button-1>", transcribe_speech)
+    speak_button.bind("<Button-1>", process_speech)
     show_recent_words_button.bind("<Button-1>", show_recent_words)
 
     # cur_interval_start = PL.get_cur_track_entry().utt_intervals[0, 0]

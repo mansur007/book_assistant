@@ -28,8 +28,8 @@ class Dictionary(object):
 
 if __name__ == '__main__':
     d = Dictionary()
-    word = u'good'
+    word = u'good luck'
     translation = d.translate(word, 'ru')
     print(u'Translation: {}'.format(translation['translatedText']))
-    print(d.define(word))
-    print(d.find_synonym_of(word))
+    # print(d.define(word))
+    # print(d.find_synonym_of(word))
