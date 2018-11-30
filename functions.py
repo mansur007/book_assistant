@@ -1,4 +1,4 @@
-# import
+import nltk
 from nltk.corpus import wordnet as wn
 # to download 'wordnet' package do:
     # >>> import nltk
@@ -28,8 +28,11 @@ class Dictionary(object):
 
 if __name__ == '__main__':
     d = Dictionary()
-    word = u'good luck'
-    translation = d.translate(word, 'ru')
-    print(u'Translation: {}'.format(translation['translatedText']))
-    # print(d.define(word))
+    word = 'goods'
+    # translation = d.translate(word, 'ru')
+    # print(u'Translation: {}'.format(translation['translatedText']))
+    print(d.define(word))
     # print(d.find_synonym_of(word))
+    # text = "I would like to thank everyone for your attention, and see you soon!"
+    # tokens = nltk.word_tokenize(text)
+    # print(nltk.pos_tag(tokens))
