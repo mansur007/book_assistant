@@ -7,7 +7,7 @@ from google.cloud import translate
 from PyDictionary import PyDictionary
 import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=\
-    "/home/mans/pycharm_projects/audiobook_assistant/audiobook-assistant-9703181ebcfe.json"
+    "/data/pycharm_projects/audiobook_assistant/audiobook-assistant-9703181ebcfe.json"
 
 
 class Dictionary(object):

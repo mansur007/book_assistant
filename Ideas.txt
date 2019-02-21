@@ -1,0 +1,26 @@
+query object: word/2 words/n words/ sentence
+Ideally:
+what user can say:
+(wait,)/(pause,)
+
+                   translate     ...                                  to Korean
+                   what is       ...                                  in Russian
+                   define        ...
+                   what does     ...                                  mean
+                   paraphrase    ...
+                   what is synonim of ...
+                   find          ...
+
+                            "..." or "phrase" can be :
+                                                 <part of a word>
+                                                 <word>
+                                                 <2 words>
+                                                 <arbitrary number of words>
+                                                 last sentence
+
+There needs to be an audio parser.
+How to parse?
+1) Identify function, operand phrase, and arguments (e.g. <language>) if applicable
+
+
+2) Match operand phrase with phrase in context
