@@ -85,11 +85,11 @@
     - variety of books. **Not started**
     - synchronous script. **Done, although has some bugs**
         - text does NOT have a 100% match with the audio:
-            - some utterances from audio are not present in text. Rare  
+            - some utterances from audio are not present in text. Rare. Just need to modify the scripts.
 
 - Other very useful functions:
     - translator  
-        google.api_core.exceptions.Forbidden: 403 POST https://translation.googleapis.com/language/translate/v2: Daily Limit Exceeded  
+        simple translation using Cloud Translation API 
         
     - dictionary
     
