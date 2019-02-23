@@ -1,10 +1,11 @@
 # Audio Book Assistant - talk to your book
 
-## What is it supposed to do?
-- Listen to the user, wait for a command
-    - wait for a keyword (Key Word Spotting, or KWS): *wait*, *hey*, *stop*, *pause*, etc.
+## What does it do?
+- Play audio books
+- Wait for a command of the user
+    - voice: wait for a keyword (Key Word Spotting, or KWS): *wait*, *hey*, *stop*, *pause*, etc.
         - speaker recognition - react to the user's voice only
-    - wait for a button press
+    - GUI: wait for a button press
 - Understand user's questions/commands related to the book. Sample Questions/Commands:
     - What is ***hegemony***?
     - Define ***social democracy***.
@@ -47,12 +48,14 @@
     There are several ways:  
     A) Speech -> [ASR] -> whole command as a sequence of letters and spaces(with timing) ->  
     -> [parserA] -> (operand as a snippet from context, function, options).  
+    
     parserA is a complex text processor which will compare words in the sequence to the function names and option names.  
     After finding the letters for a function and options - infer the operand phrase.
     **Done, but can be improved**
     
     B) Speech -> [ASR] -> whole command as a sequence of phonemes and spaces(with timing)->  
     -> [parserB] -> (operand as a snippet from context, function, options).  
+    
     parserB is similar to parserA, except that words are made of phonemes.  
     **Not started**.  
     
@@ -69,8 +72,7 @@
     
 - Provide basic functions of a good audio book app
     - player
-        - track list. Done
-        - buttons: Play, Pause, Stop, Next, Previous. Done, but still needs improvement - has some bugs and not convenient
+        - key buttons: Play, Pause, Stop, Next, Previous, etc. Done, but still needs improvement - has some bugs and not convenient
             - After pressing *Next* or *Prev*, another track is selected but it can only be played after pressing *Stop* and then *Play*  
             It would be better if next or previous track starts playing immediately after pressing a corresponding button, provided that current track is playing.  
         - *go to* button is not working properly
@@ -82,5 +84,27 @@
         only the directories that contain them are visible.
     - variety of books. **Not started**
     - synchronous script. **Done, although has some bugs**
-        - text does NOT have a 100% match with the audio
+        - text does NOT have a 100% match with the audio:
+            - some utterances from audio are not present in text. Rare  
+
+- Other very useful functions:
+    - translator  
+        google.api_core.exceptions.Forbidden: 403 POST https://translation.googleapis.com/language/translate/v2: Daily Limit Exceeded  
+        
+    - dictionary
     
+        'define' and 'find' will be used for search in dictionary  
+        
+        user(U): *define invitation*  
+        app(A): *definition of invitation: {'Noun': ['a request (spoken or written', 'a tempting allurement']}*  
+            the returned output should be processed:  
+                - get relevant part of speech  
+                - get most relevant meaning  
+        
+        U: *define Netherfield*  
+        A: *None*  
+        U: *find tiresome*  
+        A: *definition of tiresome!: None.* - The '!' must be removed before searching in dictionary  
+    
+    - thesaurus, etc., - to be added
+
