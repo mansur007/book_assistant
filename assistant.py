@@ -9,6 +9,11 @@ import transcriber
 import text_processor
 import functions
 
+from pocketsphinx import *
+
+import threading
+import wakeword_detector
+
 # import wave
 # import pydub # open almost any format, slice
 # import pyaudio
@@ -110,7 +115,7 @@ def transcribe_recent(event):
 
 
 def process_speech(event):
-    transcription = T.transcribe_speech()
+    transcription = T.transcribe_mic()
     dialogue_box.insert(0.2, "User: {}\n\n".format(transcription))
     parsed_command = text_processor.parse_command(transcription)
     if parsed_command['func'] != 'unknown' and parsed_command['phrase'] == 'it':
@@ -167,10 +172,15 @@ def go_to(event):
     target_time = float(target_time_entry.get())
     PL.go_to(target_time)
 
-
 if __name__ == '__main__':
     ask_playlist()
-
+    # # background keyword spotter
+    # from pocketsphinx import LiveSpeech
+    #
+    # speech = LiveSpeech(lm=False, keyphrase='forward', kws_threshold=1e-20)
+    # for phrase in speech:
+    #     out = phrase.segments(detailed=True)
+    #     print(out)
     #### GUI #######################################################
     root = Tk()
     track_list = Listbox(root, selectmode=SINGLE)
@@ -252,3 +262,29 @@ if __name__ == '__main__':
     root.after(50, update_script)
     root.mainloop()
     #################################################################
+
+    # t = threading.Thread(target=wakeword_detector.dummy_f)
+    # t.start()
+
+    # pocketsphinx_dir = os.path.dirname(pocketsphinx.__file__)
+    # model_dir = os.path.join(pocketsphinx_dir, 'model')
+    # config = pocketsphinx.Decoder.default_config()
+    # config.set_string('-hmm', os.path.join(model_dir, 'en-us'))
+    # config.set_string('-keyphrase', 'stop')
+    # config.set_string('-dict', os.path.join(model_dir, 'cmudict-en-us.dict'))
+    # config.set_float('-kws_threshold', 1e+20)
+    #
+    # p = pyaudio.PyAudio()
+    #
+    # stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=20480)
+    # stream.start_stream()
+    #
+    # decoder = Decoder(config)
+    # decoder.start_utt()
+    # buf = stream.read(1024)
+    # if buf:
+    #     decoder.process_raw(buf)
+    # else:
+    #     break
+
+

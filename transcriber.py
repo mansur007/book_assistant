@@ -6,7 +6,6 @@ from deepspeech.decoder import GreedyDecoder
 import deepspeech.data.data_loader
 from deepspeech import transcribe
 
-
 class DeepSpeech2Transcriber(object):
     def __init__(self, args):
         self.model = DeepSpeech.load_model(args.model_path, cuda=False)
@@ -50,7 +49,7 @@ class GoogleTranscriber(object):
         self.recognizer = sr.Recognizer()
         # self.recognizer.energy_threshold = 150
 
-    def transcribe_speech(self):
+    def transcribe_mic(self):
         with sr.Microphone(sample_rate=44100) as source:
             audio = self.recognizer.listen(source)
 
