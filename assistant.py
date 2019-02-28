@@ -12,7 +12,7 @@ import functions
 from pocketsphinx import *
 
 import threading
-import wakeword_detector
+from wakeword_detector import WWDetector
 
 # import wave
 # import pydub # open almost any format, slice
@@ -20,48 +20,33 @@ import wakeword_detector
 # maybe import pyglet
 # import pygame
 
-parser = argparse.ArgumentParser(description='DeepSpeech2 transcription')
-parser.add_argument('--model_path', default='deepspeech/models/librispeech_pretrained.pth',
-                    help='Path to model file created by training')
-parser.add_argument('--decoder', default="greedy", choices=["greedy", "beam"], type=str, help="Decoder to use")
-parser.add_argument('--offsets', dest='offsets', action='store_true', help='Returns time offset information')
-beam_args = parser.add_argument_group("Beam Decode Options", "Configurations options for the CTC Beam Search decoder")
-beam_args.add_argument('--top_paths', default=1, type=int, help='number of beams to return')
-beam_args.add_argument('--beam_width', default=10, type=int, help='Beam width to use')
-beam_args.add_argument('--lm_path', default='deepspeech/lm/3-gram.pruned.1e-7.arpa', type=str,
-                       help='Path to an (optional) kenlm language model for use with beam search (req\'d with trie)')
-beam_args.add_argument('--alpha', default=0.8, type=float, help='Language model weight')
-beam_args.add_argument('--beta', default=1, type=float, help='Language model word bonus (all words)')
-beam_args.add_argument('--cutoff_top_n', default=40, type=int,
-                       help='Cutoff number in pruning, only top cutoff_top_n characters with highest probs in '
-                            'vocabulary will be used in beam search, default 40.')
-beam_args.add_argument('--cutoff_prob', default=1.0, type=float,
-                       help='Cutoff probability in pruning,default 1.0, no pruning.')
-beam_args.add_argument('--lm_workers', default=1, type=int, help='Number of LM processes to use')
-args = parser.parse_args()
+parser = argparse.ArgumentParser(description='wakeword detection')
+porcupine_root = '/data/soft/Porcupine/'  # will be useful for specifying paths
+parser.add_argument('--keyword_file_paths', help='comma-separated absolute paths to keyword files', type=str,
+                    default=os.path.join(porcupine_root, 'assistant_linux.ppn'))  # ! default wakeword is "assistant"
+parser.add_argument(
+    '--library_path',
+    help="absolute path to Porcupine's dynamic library", type=str,
+    default=os.path.join(porcupine_root, 'lib/linux/x86_64/libpv_porcupine.so'))
+parser.add_argument(
+    '--model_file_path',
+    help='absolute path to model parameter file',
+    type=str,
+    default=os.path.join(porcupine_root, 'lib/common/porcupine_params.pv'))
+parser.add_argument('--sensitivities', help='detection sensitivity [0, 1]', default=0.5)
+parser.add_argument('--input_audio_device_index', help='index of input audio device', type=int, default=None)
+parser.add_argument(
+    '--output_path',
+    help='absolute path to where recorded audio will be stored. If not set, it will be bypassed.',
+    type=str,
+    default=None)
+parser.add_argument('--show_audio_devices_info', action='store_true')
+wwd_args = parser.parse_args()
 
 
 TranscriptDuration = 8
 
 PL = player.PlayList()
-
-
-def update_script():
-    global cur_interval_start, cur_interval_end
-    t = max(PL.current_time(), 0)
-    if t > cur_interval_end or t < cur_interval_start:
-        # print("t: {}, cur_interval_start: {}, cur_interval_end: {}".
-        #       format(t, cur_interval_start, cur_interval_end))
-        # sys.stdout.flush()
-
-        utterance = PL.get_utterance(t)
-        cur_interval_start = utterance['start_time']
-        cur_interval_end = utterance['end_time']
-        transcription_box.insert('end', '{}\n\n'.format(utterance['text']))
-        transcription_box.see('end')
-
-    root.after(150, update_script)
-
 
 T = transcriber.GoogleTranscriber()
 # T = transcriber.DeepSpeech2Transcriber(args)
@@ -81,99 +66,221 @@ def ask_playlist():
     return
 
 
-def play_track(event):
-    is_unpausing = PL.play()
-    if is_unpausing is True:
-        skip_update = True
 
 
-def stop_track(event):
-    PL.stop()
+class GUI(threading.Thread):
+    def __init__(self, PL, T, D, TranscriptDuration):
+        super().__init__()
+        self.PL = PL  # playlist
+        self.T = T  # transcriber
+        self.D = D  # dictionary
+        self.TranscriptDuration = TranscriptDuration
+        self.root = Tk()
+        self.track_list = Listbox(self.root, selectmode=SINGLE)  # visual representation of playlist
+        self.track_list.grid(row=0, rowspan=2)
+        for item in PL.entry_list:
+            self.track_list.insert(END, item.audio_path)
+        self.track_list.selection_set(0)
+        self.track_list.activate(0)
+        self.prev_button = Button(self.root, text='Prev')
+        self.prev_button.grid(row=0, column=1)
+        # prev_button.pack(side=LEFT, fill=X)
 
+        self.play_button = Button(self.root, text='Play')
+        # play_button.pack(side=LEFT, fill=X)
+        self.play_button.grid(row=0, column=2)
 
-def prev_track(event):
-    PL.goto_prev()
-    track_list.selection_clear(0, END)
-    track_list.selection_set(PL.curr_index)
-    track_list.activate(PL.curr_index)
+        self.stop_button = Button(self.root, text='Stop')
+        self.stop_button.grid(row=0, column=3)
+        # stop_button.pack(side=LEFT, fill=X)
 
+        self.next_button = Button(self.root, text='Next')
+        self.next_button.grid(row=0, column=4)
+        # next_button.pack(side=LEFT, fill=X)
 
-def next_track(event):
-    PL.goto_next()
-    track_list.selection_clear(0, END)
-    track_list.selection_set(PL.curr_index)
-    track_list.activate(PL.curr_index)
+        self.pause_button = Button(self.root, text='Pause')
+        self.pause_button.grid(row=0, column=5)
+        # pause_button.pack(side=BOTTOM, fill=X)
 
-def pause_track(event):
-    PL.pause()
+        self.transcribe_button = Button(self.root, text='Transcribe')
+        self.transcribe_button.grid(row=1, column=1)
+        # transcribe_button.pack(side=LEFT, fill=X)
 
+        self.get_pos_button = Button(self.root, text='Get_Pos')
+        self.get_pos_button.grid(row=1, column=2)
+        # get_pos_button.pack(side=LEFT, fill=X)
 
-def transcribe_recent(event):
-    offset = max(0, PL.current_time() - TranscriptDuration)
-    transcription = T.transcribe_audio(PL.get_cur_track_path(), TranscriptDuration, offset)
-    dialogue_box.insert(0.2, transcription+"\n\n")
+        self.go_to_button = Button(self.root, text='Go_to(time in sec)')
+        self.go_to_button.grid(row=1, column=3)
+        # go_to_button.pack(side=LEFT, fill=X)
 
+        self.target_time_entry = Entry(self.root)
+        self.target_time_entry.grid(row=1, column=4, columnspan=2)
 
-def process_speech(event):
-    transcription = T.transcribe_mic()
-    dialogue_box.insert(0.2, "User: {}\n\n".format(transcription))
-    parsed_command = text_processor.parse_command(transcription)
-    if parsed_command['func'] != 'unknown' and parsed_command['phrase'] == 'it':
-        dialogue_box.insert(0.2, "assistant could not comprehend the target phrase\n\n")
+        self.dialogue_box = Text(self.root, wrap=WORD, height=7)
+        self.dialogue_box.configure(font=("Times New Roman", 14))
+        self.dialogue_box.grid(row=3, columnspan=5)
 
-    elif parsed_command['func'] == 'translate':
-        recently_played_words = PL.get_recent_words()
+        self.transcription_box = Text(self.root, wrap=WORD, height=15)
+        self.transcription_box.configure(font=("Times New Roman", 14))
+        self.transcription_box.grid(row=4, columnspan=5)
+        self.transcription_scrollbar = Scrollbar(self.root, orient="vertical", command=self.transcription_box.yview)
+        self.transcription_box.configure(yscrollcommand=self.transcription_scrollbar.set)
+        self.transcription_scrollbar.grid(row=4, column=6)
 
-        target_word = None
-        max_len = 0
-        for w in parsed_command['phrase']:
-            if len(w) > max_len:
-                target_word = w
-                max_len = len(w)
-        target_word = text_processor.find_most_similar_word(target_word, recently_played_words)
+        self.show_recent_words_button = Button(self.root, text='Show Recent Words')
+        self.show_recent_words_button.grid(row=2, column=3)
 
-        translation_dict = D.translate(target_word, 'ru')
-        translation = translation_dict['translatedText']
-        dialogue_box.insert(0.2, "translation of {}: {}\n\n".
-                            format(target_word, translation))
+        self.speak_button = Button(self.root, text='Voice Command')
+        self.speak_button.grid(row=2, column=2)
 
-    elif parsed_command['func'] == 'define':
-        recently_played_words = PL.get_recent_words()
+        self.play_button.bind("<Button-1>", self.play_track)
+        self.stop_button.bind("<Button-1>", self.stop_track)
+        self.next_button.bind("<Button-1>", self.next_track)
+        self.prev_button.bind("<Button-1>", self.prev_track)
+        self.pause_button.bind("<Button-1>", self.pause_track)
+        self.transcribe_button.bind("<Button-1>", self.transcribe_recent)
+        self.get_pos_button.bind("<Button-1>", self.get_pos)
+        self.go_to_button.bind("<Button-1>", self.go_to)
+        self.speak_button.bind("<Button-1>", self.process_speech)
+        self.show_recent_words_button.bind("<Button-1>", self.show_recent_words)
 
-        phrase = parsed_command['phrase']
-        target_word = None
-        max_len = 0
-        for w in phrase:
-            if len(w) > max_len:
-                target_word = w
-                max_len = len(w)
-        target_word = text_processor.find_most_similar_word(target_word, recently_played_words)
+        # making sure that first utterance shows up:
+        self.cur_interval_start = -0.001
+        self.cur_interval_end = 0
 
-        definition = D.define(target_word)
-        dialogue_box.insert(0.2, "definition of {}: {}\n\n".
-                            format(target_word, definition))
+        # self.root.after(50, self.update_script)
 
-    print("parsed command: {}\n".format(parsed_command))
+        self.root.mainloop()
 
+    def play_track(self, event):
+        is_unpausing = self.PL.play()
+        if is_unpausing is True:
+            self.skip_update = True
 
-# shows the most recent words from provided transcript
-def show_recent_words(event):
-    recent_words = PL.get_recent_words()
-    dialogue_box.insert(0.2, ' '.join(recent_words) + "\n\n")
-    transcription_box.see("end")
+    def stop_track(self, event):
+        self.PL.stop()
 
+    def prev_track(self, event):
+        PL.goto_prev()
+        self.track_list.selection_clear(0, END)
+        self.track_list.selection_set(self.PL.curr_index)
+        self.track_list.activate(self.PL.curr_index)
 
-def get_pos(event):
-    pos = PL.current_time()
-    print(pos)
+    def next_track(self, event):
+        PL.goto_next()
+        self.track_list.selection_clear(0, END)
+        self.track_list.selection_set(self.PL.curr_index)
+        self.track_list.activate(self.PL.curr_index)
 
+    def pause_track(self, event):
+        self.PL.pause()
 
-def go_to(event):
-    target_time = float(target_time_entry.get())
-    PL.go_to(target_time)
+    def transcribe_recent(self, event):
+        offset = max(0, self.PL.current_time() - self.TranscriptDuration)
+        transcription = self.T.transcribe_audio(self.PL.get_cur_track_path(), self.TranscriptDuration, offset)
+        self.dialogue_box.insert(0.2, transcription + "\n\n")
+
+    def process_speech(self, event):
+        transcription = self.T.transcribe_mic()
+        self.dialogue_box.insert(0.2, "User: {}\n\n".format(transcription))
+        parsed_command = text_processor.parse_command(transcription)
+        if parsed_command['func'] != 'unknown' and parsed_command['phrase'] == 'it':
+            self.dialogue_box.insert(0.2, "assistant could not comprehend the target phrase\n\n")
+
+        elif parsed_command['func'] == 'translate':
+            recently_played_words = self.PL.get_recent_words()
+
+            target_word = None
+            max_len = 0
+            for w in parsed_command['phrase']:
+                if len(w) > max_len:
+                    target_word = w
+                    max_len = len(w)
+            target_word = text_processor.find_most_similar_word(target_word, recently_played_words)
+
+            translation_dict = self.D.translate(target_word, 'ru')
+            translation = translation_dict['translatedText']
+            self.dialogue_box.insert(0.2, "translation of {}: {}\n\n".
+                                format(target_word, translation))
+
+        elif parsed_command['func'] == 'define':
+            recently_played_words = self.PL.get_recent_words()
+
+            phrase = parsed_command['phrase']
+            target_word = None
+            max_len = 0
+            for w in phrase:
+                if len(w) > max_len:
+                    target_word = w
+                    max_len = len(w)
+            target_word = text_processor.find_most_similar_word(target_word, recently_played_words)
+
+            definition = self.D.define(target_word)
+            self.dialogue_box.insert(0.2, "definition of {}: {}\n\n".
+                                format(target_word, definition))
+
+        print("parsed command: {}\n".format(parsed_command))
+
+    # shows the most recent words from provided transcript
+    def show_recent_words(self, event):
+        recent_words = self.PL.get_recent_words()
+        self.dialogue_box.insert(0.2, ' '.join(recent_words) + "\n\n")
+        self.transcription_box.see("end")
+
+    def get_pos(self, event):
+        pos = self.PL.current_time()
+        print(pos)
+
+    def go_to(self, event):
+        target_time = float(self.target_time_entry.get())
+        PL.go_to(target_time)
+
+    def update_script(self):
+        t = max(PL.current_time(), 0)
+        if t > self.cur_interval_end or t < self.cur_interval_start:
+            # print("t: {}, cur_interval_start: {}, cur_interval_end: {}".
+            #       format(t, cur_interval_start, cur_interval_end))
+            # sys.stdout.flush()
+
+            utterance = self.PL.get_utterance(t)
+            self.cur_interval_start = utterance['start_time']
+            self.cur_interval_end = utterance['end_time']
+            self.transcription_box.insert('end', '{}\n\n'.format(utterance['text']))
+            self.transcription_box.see('end')
+
+        self.root.after(150, self.update_script)
 
 if __name__ == '__main__':
     ask_playlist()
+
+    if wwd_args.show_audio_devices_info:
+        WWDetector.show_audio_devices_info()
+    else:
+        if not wwd_args.keyword_file_paths:
+            raise ValueError('keyword file paths are missing')
+
+        keyword_file_paths = [x.strip() for x in wwd_args.keyword_file_paths.split(',')]
+
+        if isinstance(wwd_args.sensitivities, float):
+            sensitivities = [wwd_args.sensitivities] * len(keyword_file_paths)
+        else:
+            sensitivities = [float(x) for x in wwd_args.sensitivities.split(',')]
+
+        WWDetector(
+            library_path=wwd_args.library_path,
+            model_file_path=wwd_args.model_file_path,
+            keyword_file_paths=keyword_file_paths,
+            sensitivities=sensitivities,
+            output_path=wwd_args.output_path,
+            input_device_index=wwd_args.input_audio_device_index).start()
+
+
+    # dummy_thread = threading.Thread(target=wakeword_detector.dummy_f)
+    # dummy_thread.start()
+    gui_thread = GUI(PL, T, D, TranscriptDuration)
+    gui_thread.start()
+
     # # background keyword spotter
     # from pocketsphinx import LiveSpeech
     #
@@ -181,87 +288,7 @@ if __name__ == '__main__':
     # for phrase in speech:
     #     out = phrase.segments(detailed=True)
     #     print(out)
-    #### GUI #######################################################
-    root = Tk()
-    track_list = Listbox(root, selectmode=SINGLE)
-    track_list.grid(row=0, rowspan=2)
-    for item in PL.entry_list:
-        track_list.insert(END, item.audio_path)
-    track_list.selection_set(0)
-    track_list.activate(0)
 
-    prev_button = Button(root, text='Prev')
-    prev_button.grid(row=0, column=1)
-    # prev_button.pack(side=LEFT, fill=X)
-
-    play_button = Button(root, text='Play')
-    # play_button.pack(side=LEFT, fill=X)
-    play_button.grid(row=0, column=2)
-
-    stop_button = Button(root, text='Stop')
-    stop_button.grid(row=0, column=3)
-    # stop_button.pack(side=LEFT, fill=X)
-
-    next_button = Button(root, text='Next')
-    next_button.grid(row=0, column=4)
-    # next_button.pack(side=LEFT, fill=X)
-
-    pause_button = Button(root, text='Pause')
-    pause_button.grid(row=0, column=5)
-    # pause_button.pack(side=BOTTOM, fill=X)
-
-    transcribe_button = Button(root, text='Transcribe')
-    transcribe_button.grid(row=1, column=1)
-    # transcribe_button.pack(side=LEFT, fill=X)
-
-    get_pos_button = Button(root, text='Get_Pos')
-    get_pos_button.grid(row=1, column=2)
-    # get_pos_button.pack(side=LEFT, fill=X)
-
-    go_to_button = Button(root, text='Go_to(time in sec)')
-    go_to_button.grid(row=1, column=3)
-    # go_to_button.pack(side=LEFT, fill=X)
-
-    target_time_entry = Entry(root)
-    target_time_entry.grid(row=1, column=4, columnspan=2)
-
-    dialogue_box = Text(root, wrap=WORD, height=7)
-    dialogue_box.configure(font=("Times New Roman", 14))
-    dialogue_box.grid(row=3, columnspan=5)
-
-    transcription_box = Text(root, wrap=WORD, height=15)
-    transcription_box.configure(font=("Times New Roman", 14))
-    transcription_box.grid(row=4, columnspan=5)
-    transcription_scrollbar = Scrollbar(root, orient="vertical", command=transcription_box.yview)
-    transcription_box.configure(yscrollcommand=transcription_scrollbar.set)
-    transcription_scrollbar.grid(row=4, column=6)
-
-    show_recent_words_button = Button(root, text='Show Recent Words')
-    show_recent_words_button.grid(row=2, column=3)
-
-    speak_button = Button(root, text='Voice Command')
-    speak_button.grid(row=2, column=2)
-
-    play_button.bind("<Button-1>", play_track)
-    stop_button.bind("<Button-1>", stop_track)
-    next_button.bind("<Button-1>", next_track)
-    prev_button.bind("<Button-1>", prev_track)
-    pause_button.bind("<Button-1>", pause_track)
-    transcribe_button.bind("<Button-1>", transcribe_recent)
-    get_pos_button.bind("<Button-1>", get_pos)
-    go_to_button.bind("<Button-1>", go_to)
-    speak_button.bind("<Button-1>", process_speech)
-    show_recent_words_button.bind("<Button-1>", show_recent_words)
-
-    # cur_interval_start = PL.get_cur_track_entry().utt_intervals[0, 0]
-    # cur_interval_end = PL.get_cur_track_entry().utt_intervals[0, 1]
-    # making sure that first utterance shows up:
-    cur_interval_start = -0.001
-    cur_interval_end = 0
-
-    root.after(50, update_script)
-    root.mainloop()
-    #################################################################
 
     # t = threading.Thread(target=wakeword_detector.dummy_f)
     # t.start()
