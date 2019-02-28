@@ -149,7 +149,7 @@ class GUI(threading.Thread):
         self.cur_interval_start = -0.001
         self.cur_interval_end = 0
 
-        # self.root.after(50, self.update_script)
+        self.root.after(50, self.update_script)
 
         self.root.mainloop()
 
