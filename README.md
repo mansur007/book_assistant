@@ -42,7 +42,10 @@
 
 - Spotting a command
     - button press, - Done
-    - KWS, - Not started
+    - KWS
+        - Detects one keyword: "assistant"
+        - Puts audio on pause
+        - Activates voice parser
 
 - Understanding user's questions/commands  
     There are several ways:  
@@ -97,9 +100,10 @@
         
         user(U): *define invitation*  
         app(A): *definition of invitation: {'Noun': ['a request (spoken or written', 'a tempting allurement']}*  
-            the returned output should be processed:  
-                - get relevant part of speech  
-                - get most relevant meaning  
+            the returned output should be processed:
+                - get sentence where the word occurs  
+                - identify part of speech (i.e. Noun/Verb/Adjective, etc.)
+                - get most relevant meaning
         
         U: *define Netherfield*  
         A: *None*  
