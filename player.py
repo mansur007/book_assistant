@@ -93,7 +93,9 @@ class PlayList:
         else:
             self.curr_index += 1
 
-    def get_utterance(self, t):
+    def get_utterance(self, t=None):
+        if t is None:
+            t = self.current_time()
         utterances = self.get_cur_track_entry().utterances
         utt_intervals = self.get_cur_track_entry().utt_intervals
         cur_utterance = np.asscalar(utterances[(utt_intervals[:, 0] <= t) & (utt_intervals[:, 1] >= t)])

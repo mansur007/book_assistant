@@ -14,6 +14,8 @@ from pocketsphinx import *
 import threading
 from wakeword_detector import WWDetector
 
+import nltk
+from nltk.tag import map_tag #  to simplify part-of-speech tagging
 # import wave
 # import pydub # open almost any format, slice
 # import pyaudio
@@ -223,10 +225,20 @@ class GUI(threading.Thread):
                     target_word = w
                     max_len = len(w)
             target_word = text_processor.find_most_similar_word(target_word, recently_played_words)
+            context_utterance = self.PL.get_utterance()['text']
 
             definition = self.D.define(target_word)
             self.dialogue_box.insert(0.2, "definition of {}: {}\n\n".
                                 format(target_word, definition))
+            self.dialogue_box.insert(0.2, "context utterance: {}\n".format(context_utterance))
+            utt_tokenized = nltk.word_tokenize(context_utterance)
+            utt_tagged = nltk.pos_tag(utt_tokenized)
+            simplifiedTags = [(word, map_tag('en-ptb', 'universal', tag)) for word, tag in utt_tagged]
+            pos = 'UNKNOWN'
+            for token, tag in simplifiedTags:
+                if token == target_word:
+                    self.dialogue_box.insert(0.2, 'POS of {} is: {}\n'.format(target_word, tag))
+                    break
 
         print("parsed command: {}\n".format(parsed_command))
 
