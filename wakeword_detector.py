@@ -15,12 +15,14 @@ def dummy_f():
 class WWDetector(Thread):
     def __init__(
             self,
+            gui,  # added to control gui
             library_path,
             model_file_path,
             keyword_file_paths,
             sensitivities,
             input_device_index=None,
-            output_path=None):
+            output_path=None,
+            ):
 
         """
         Constructor.
@@ -37,6 +39,8 @@ class WWDetector(Thread):
         """
 
         super().__init__()
+
+        self.gui = gui
 
         self._library_path = library_path
         self._model_file_path = model_file_path
@@ -93,6 +97,7 @@ class WWDetector(Thread):
                 result = porcupine.process(pcm)
                 if num_keywords == 1 and result:
                     print('[%s] detected keyword' % str(datetime.now()))
+                    self.gui.pause_track()
                 elif num_keywords > 1 and result >= 0:
                     print('[%s] detected %s' % (str(datetime.now()), keyword_names[result]))
 

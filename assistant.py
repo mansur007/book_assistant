@@ -151,7 +151,7 @@ class GUI(threading.Thread):
 
         self.root.after(50, self.update_script)
 
-        self.root.mainloop()
+        # self.root.mainloop()
 
     def play_track(self, event):
         is_unpausing = self.PL.play()
@@ -173,7 +173,7 @@ class GUI(threading.Thread):
         self.track_list.selection_set(self.PL.curr_index)
         self.track_list.activate(self.PL.curr_index)
 
-    def pause_track(self, event):
+    def pause_track(self, event=None):
         self.PL.pause()
 
     def transcribe_recent(self, event):
@@ -254,31 +254,32 @@ class GUI(threading.Thread):
 if __name__ == '__main__':
     ask_playlist()
 
-    if wwd_args.show_audio_devices_info:
-        WWDetector.show_audio_devices_info()
+
+    if not wwd_args.keyword_file_paths:
+        raise ValueError('keyword file paths are missing')
+
+    keyword_file_paths = [x.strip() for x in wwd_args.keyword_file_paths.split(',')]
+
+    if isinstance(wwd_args.sensitivities, float):
+        sensitivities = [wwd_args.sensitivities] * len(keyword_file_paths)
     else:
-        if not wwd_args.keyword_file_paths:
-            raise ValueError('keyword file paths are missing')
+        sensitivities = [float(x) for x in wwd_args.sensitivities.split(',')]
 
-        keyword_file_paths = [x.strip() for x in wwd_args.keyword_file_paths.split(',')]
+    gui_thread = GUI(PL, T, D, TranscriptDuration)
 
-        if isinstance(wwd_args.sensitivities, float):
-            sensitivities = [wwd_args.sensitivities] * len(keyword_file_paths)
-        else:
-            sensitivities = [float(x) for x in wwd_args.sensitivities.split(',')]
-
-        WWDetector(
-            library_path=wwd_args.library_path,
-            model_file_path=wwd_args.model_file_path,
-            keyword_file_paths=keyword_file_paths,
-            sensitivities=sensitivities,
-            output_path=wwd_args.output_path,
-            input_device_index=wwd_args.input_audio_device_index).start()
+    WWDetector(
+        gui=gui_thread,
+        library_path=wwd_args.library_path,
+        model_file_path=wwd_args.model_file_path,
+        keyword_file_paths=keyword_file_paths,
+        sensitivities=sensitivities,
+        output_path=wwd_args.output_path,
+        input_device_index=wwd_args.input_audio_device_index).start()
 
 
     # dummy_thread = threading.Thread(target=wakeword_detector.dummy_f)
     # dummy_thread.start()
-    gui_thread = GUI(PL, T, D, TranscriptDuration)
+    gui_thread.root.mainloop()
     gui_thread.start()
 
     # # background keyword spotter
