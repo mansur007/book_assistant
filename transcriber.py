@@ -56,7 +56,9 @@ class GoogleTranscriber(object):
         try:
             return self.recognizer.recognize_google(audio)
         except LookupError:
-            print("Could not understand audio")
+            return 'inaudible'
+        except sr.UnknownValueError:
+            return 'inaudible'
 
     def transcribe_audio(self, filepath, duration=10, offset=0):
 

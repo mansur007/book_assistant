@@ -81,6 +81,8 @@ def parse_command(command):
             else:
                 phrase = word_list[i+1:]
             return {'func': 'define', 'phrase': phrase, 'args': []}
+        elif cer(word, 'continue') <= 2:
+            return {'func': 'play'}
         else:
             return {'func': 'unknown'}
 

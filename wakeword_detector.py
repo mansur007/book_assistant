@@ -98,6 +98,7 @@ class WWDetector(Thread):
                 if num_keywords == 1 and result:
                     print('[%s] detected keyword' % str(datetime.now()))
                     self.gui.pause_track()
+                    self.gui.parse_voice()
                 elif num_keywords > 1 and result >= 0:
                     print('[%s] detected %s' % (str(datetime.now()), keyword_names[result]))
 

@@ -142,7 +142,7 @@ class GUI(threading.Thread):
         self.transcribe_button.bind("<Button-1>", self.transcribe_recent)
         self.get_pos_button.bind("<Button-1>", self.get_pos)
         self.go_to_button.bind("<Button-1>", self.go_to)
-        self.speak_button.bind("<Button-1>", self.process_speech)
+        self.speak_button.bind("<Button-1>", self.parse_voice)
         self.show_recent_words_button.bind("<Button-1>", self.show_recent_words)
 
         # making sure that first utterance shows up:
@@ -153,7 +153,7 @@ class GUI(threading.Thread):
 
         # self.root.mainloop()
 
-    def play_track(self, event):
+    def play_track(self, event=None):
         is_unpausing = self.PL.play()
         if is_unpausing is True:
             self.skip_update = True
@@ -181,11 +181,19 @@ class GUI(threading.Thread):
         transcription = self.T.transcribe_audio(self.PL.get_cur_track_path(), self.TranscriptDuration, offset)
         self.dialogue_box.insert(0.2, transcription + "\n\n")
 
-    def process_speech(self, event):
-        transcription = self.T.transcribe_mic()
+    def parse_voice(self, event=None):
+        while True:
+            transcription = self.T.transcribe_mic()
+            if transcription!='inaudible':
+                break
+            else:
+                self.dialogue_box.insert(0.2, "Speech Recognizer: I didn't get it, please try again\n\n")
         self.dialogue_box.insert(0.2, "User: {}\n\n".format(transcription))
         parsed_command = text_processor.parse_command(transcription)
-        if parsed_command['func'] != 'unknown' and parsed_command['phrase'] == 'it':
+
+        if parsed_command['func'] == 'play':
+            self.play_track()
+        elif parsed_command['func'] != 'unknown' and parsed_command['phrase'] == 'it':
             self.dialogue_box.insert(0.2, "assistant could not comprehend the target phrase\n\n")
 
         elif parsed_command['func'] == 'translate':
