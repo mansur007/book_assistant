@@ -1,7 +1,7 @@
+import string
 from tkinter import *
 import threading
-import nltk
-from nltk.tag import map_tag  # to simplify part-of-speech tagging
+
 import text_processor
 
 
@@ -161,20 +161,16 @@ class GUI(threading.Thread):
                     max_len = len(w)
             target_word = text_processor.find_most_similar_word(target_word, recently_played_words)
 
-            self.PL.get_word_context(target_word)
+            # remove punctuation from target_word:
+            exclude = set(string.punctuation)
+            target_word = ''.join(ch for ch in target_word if ch not in exclude)
 
-            definition = self.D.define(target_word)
-            self.dialogue_box.insert(0.2, "definition of {}: {}\n\n".
-                                format(target_word, definition))
-            self.dialogue_box.insert(0.2, "context utterance: {}\n".format(context_utterance))
-            utt_tokenized = nltk.word_tokenize(context_utterance)
-            utt_tagged = nltk.pos_tag(utt_tokenized)
-            simplifiedTags = [(word, map_tag('en-ptb', 'universal', tag)) for word, tag in utt_tagged]
-            pos = 'UNKNOWN'
-            for token, tag in simplifiedTags:
-                if token == target_word:
-                    self.dialogue_box.insert(0.2, 'POS of {} is: {}\n'.format(target_word, tag))
-                    break
+            context_utterance = self.PL.get_word_context(target_word)['text']
+            # self.dialogue_box.insert(0.2, "context: {}\n".format(context_utterance))
+
+            relevant_definition, pos = self.D.define(target_word, context_utterance)
+            self.dialogue_box.insert(0.2, "definition of {} as a {}: {}\n\n".
+                                format(target_word, pos, relevant_definition))
 
         print("parsed command: {}\n".format(parsed_command))
 

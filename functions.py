@@ -1,5 +1,6 @@
 import nltk
 from nltk.corpus import wordnet as wn
+from nltk.tag import map_tag  # to simplify part-of-speech tagging
 # to download 'wordnet' package do:
     # >>> import nltk
     # >>> nltk.download('wordnet')
@@ -19,8 +20,26 @@ class Dictionary(object):
         # return self.translator.translate(phrase, language)
         return self.translator.translate(phrase, target_language=targlang)
 
-    def define(self, word):
-        return self.dictionary.meaning(word)
+    def define(self, target_word, context_utterance):
+        utt_tokenized = nltk.word_tokenize(context_utterance)
+        utt_tagged = nltk.pos_tag(utt_tokenized)
+        simplifiedTags = [(word, map_tag('en-ptb', 'universal', tag)) for word, tag in utt_tagged]
+        pos = 'UNKNOWN'
+        for token, tag in simplifiedTags:
+            if token == target_word:
+                pos = tag
+                pos = pos.lower().capitalize()  # to make it same form as pydictionary's
+                break
+
+        full_definition = self.dictionary.meaning(target_word)
+        try:
+            relevant_definition = full_definition[pos]
+        except KeyError:
+            # pos will be the first key in the definition dictionary
+            pos = next(iter(full_definition))
+            relevant_definition = full_definition[pos]
+
+        return relevant_definition, pos
 
     def find_synonym_of(self, word):
         return wn.synsets(word)

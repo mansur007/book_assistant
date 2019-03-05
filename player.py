@@ -114,10 +114,10 @@ class PlayList:
         i = 0
         while True:
             if i >= max_steps:
-                utterance = self.PL.get_utterance()
+                utterance = self.get_utterance()
                 break
             else:
-                utterance = self.PL.get_utterance(t)
+                utterance = self.get_utterance(t)
             if word in utterance['text']:
                 break
             else:

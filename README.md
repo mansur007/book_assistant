@@ -92,7 +92,10 @@
 
 - Other very useful functions:
     - translator  
-        simple translation using Cloud Translation API 
+        simple translation using Cloud Translation API  
+       
+        TODO:
+        - output the most relevant translation
         
     - dictionary
     
@@ -110,5 +113,10 @@
         U: *find tiresome*  
         A: *definition of tiresome!: None.* - The '!' must be removed before searching in dictionary  
     
+        TODO:  
+        - POS identification. **Done**
+        - Remove punctuation from target word. **Done**
+        - Rank meanings and output the most relevant. **Not Started**
+        
     - thesaurus, etc., - to be added
 
