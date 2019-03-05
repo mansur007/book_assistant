@@ -109,6 +109,22 @@ class PlayList:
                 'start_time': cur_utt_interval[0],
                 'end_time': cur_utt_interval[1]}
 
+    def get_word_context(self, word, max_steps=4):
+        t = self.current_time()
+        i = 0
+        while True:
+            if i >= max_steps:
+                utterance = self.PL.get_utterance()
+                break
+            else:
+                utterance = self.PL.get_utterance(t)
+            if word in utterance['text']:
+                break
+            else:
+                t = utterance['start_time'] - 0.3  # 0.3 is an arbitrarily chosen small amount of time
+            i += 1
+        return utterance
+
     def get_recent_words(self, duration=10):
         cur_time = self.current_time()
 
