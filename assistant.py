@@ -3,7 +3,7 @@ import argparse
 
 import player
 import transcriber
-import functions
+import dictionary
 
 from pocketsphinx import *
 
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     TranscriptDuration = 8
     PL = player.PlayList()
     T = transcriber.GoogleTranscriber()
-    D = functions.Dictionary()
+    D = dictionary.Dictionary()
     ask_playlist(PL)
 
     if not wwd_args.keyword_file_paths:
