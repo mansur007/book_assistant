@@ -2,10 +2,11 @@ import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=\
     "/data/pycharm_projects/audiobook_assistant/audiobook-assistant-9703181ebcfe.json"
 from google.cloud import texttospeech
+import subprocess
 
 
 class SpeechSynthesizer(object):
-    def __init__(self, lang_code='en-US', name='en-US-Wavenet-B', out_path='output.mp3'):
+    def __init__(self, lang_code='en-US', name='en-US-Wavenet-B', audio_path='output.mp3'):
         self.client = texttospeech.TextToSpeechClient()
         self.voice = texttospeech.types.VoiceSelectionParams(
             language_code=lang_code,
@@ -14,7 +15,7 @@ class SpeechSynthesizer(object):
             # name='ru-RU-Wavenet-B'
         )
         self.audio_config = texttospeech.types.AudioConfig(audio_encoding=texttospeech.enums.AudioEncoding.MP3)
-        self.out_path = out_path
+        self.audio_path = audio_path
 
     def synthesize(self, text):
         # Set the text input to be synthesized
@@ -22,10 +23,14 @@ class SpeechSynthesizer(object):
         response = self.client.synthesize_speech(synthesis_input, self.voice, self.audio_config)
 
         # The response's audio_content is binary.
-        with open(self.out_path, 'wb') as out:
+        with open(self.audio_path, 'wb') as out:
             # Write the response to the output file.
             out.write(response.audio_content)
-            print('Audio content written to file "{}"'.format(self.out_path))
+            print('Audio content written to file "{}"'.format(self.audio_path))
+
+    def speak(self, text):
+        self.synthesize(text)
+        subprocess.Popen(['mpg123', '-q', self.audio_path]).wait()
 
 
 if __name__ == '__main__':
@@ -62,7 +67,7 @@ if __name__ == '__main__':
     #     out.write(response.audio_content)
     #     print('Audio content written to file "output.mp3"')
 
-    EnSpeaker = SpeechSynthesizer(lang_code='en-US', name='en-US-Wavenet-B', out_path='outputEnB.mp3')
+    EnSpeaker = SpeechSynthesizer(lang_code='en-US', name='en-US-Wavenet-B', audio_path='outputEnB.mp3')
     EnSpeaker.synthesize('preconceived opinion that is not based on reason or actual experience.')
-    RuSpeaker = SpeechSynthesizer(lang_code='ru-RU', name='ru-RU-Wavenet-C', out_path='outputRuC.mp3')
-    RuSpeaker.synthesize('Ставший привычным ложный взгляд на что-нибудь')
+    RuSpeaker = SpeechSynthesizer(lang_code='ru-RU', name='ru-RU-Wavenet-C', audio_path='outputRuC.mp3')
+    RuSpeaker.speak('Ставший привычным ложный взгляд на что-нибудь')
