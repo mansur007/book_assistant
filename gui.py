@@ -3,6 +3,7 @@ from tkinter import *
 import threading
 
 import text_processor
+import text2speech
 
 
 class GUI(threading.Thread):
@@ -11,6 +12,9 @@ class GUI(threading.Thread):
         self.PL = PL  # playlist
         self.T = T  # transcriber
         self.D = D  # dictionary
+        self.dictionaryVoice = text2speech.SpeechSynthesizer(lang_code='en-US', name='en-US-Wavenet-B')
+        self.translatorVoice = text2speech.SpeechSynthesizer(lang_code='ru-RU', name='ru-RU-Wavenet-C')
+
         self.TranscriptDuration = TranscriptDuration
         self.root = Tk()
         self.track_list = Listbox(self.root, selectmode=SINGLE)  # visual representation of playlist
@@ -148,6 +152,7 @@ class GUI(threading.Thread):
             translation = translation_dict['translatedText']
             self.dialogue_box.insert(0.2, "translation of {}: {}\n\n".
                                 format(target_word, translation))
+            self.translatorVoice.speak(translation)
 
         elif parsed_command['func'] == 'define':
             recently_played_words = self.PL.get_recent_words()
@@ -170,7 +175,9 @@ class GUI(threading.Thread):
 
             relevant_definition, pos = self.D.define(target_word, context_utterance)
             self.dialogue_box.insert(0.2, "definition of {} as a {}: {}\n\n".
-                                format(target_word, pos, relevant_definition))
+                                format(target_word, pos, relevant_definition[0]))
+            self.dictionaryVoice.speak(relevant_definition[0])
+
 
         print("parsed command: {}\n".format(parsed_command))
 
