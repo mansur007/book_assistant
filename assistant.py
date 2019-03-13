@@ -1,3 +1,4 @@
+import os
 from tkinter.filedialog import askdirectory
 import argparse
 
@@ -5,12 +6,8 @@ import player
 import transcriber
 import dictionary
 
-from pocketsphinx import *
-
 from wakeword_detector import WWDetector
 from gui import GUI
-
-
 
 
 parser = argparse.ArgumentParser(description='wakeword detection')

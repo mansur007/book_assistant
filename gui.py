@@ -1,5 +1,6 @@
 import string
 from tkinter import *
+from tkinter.ttk import *
 import threading
 
 import text_processor

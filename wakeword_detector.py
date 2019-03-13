@@ -2,7 +2,7 @@ import time, os, sys, pyaudio, struct, soundfile, numpy as np
 from threading import Thread
 from datetime import datetime
 
-sys.path.append(os.path.join('/data/soft/Porcupine/binding/python/'))
+sys.path.append('/data/soft/Porcupine/binding/python/')
 from porcupine import Porcupine
 
 

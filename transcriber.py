@@ -1,45 +1,45 @@
 import wave
 import speech_recognition as sr
-from torch.autograd import Variable
-from deepspeech.model import DeepSpeech
-from deepspeech.decoder import GreedyDecoder
-import deepspeech.data.data_loader
-from deepspeech import transcribe
+# from torch.autograd import Variable
+# from deepspeech.model import DeepSpeech
+# from deepspeech.decoder import GreedyDecoder
+# import deepspeech.data.data_loader
+# from deepspeech import transcribe
 
-class DeepSpeech2Transcriber(object):
-    def __init__(self, args):
-        self.model = DeepSpeech.load_model(args.model_path, cuda=False)
-        self.model.eval()
-
-        self.labels = DeepSpeech.get_labels(self.model)
-        self.audio_conf = DeepSpeech.get_audio_conf(self.model)
-        self.parser = deepspeech.data.data_loader.SpectrogramParser(self.audio_conf, normalize=True)
-        self.args = args
-        if args.decoder == "beam":
-            from deepspeech.decoder import BeamCTCDecoder
-
-            self.decoder = BeamCTCDecoder(self.labels, lm_path=args.lm_path, alpha=args.alpha, beta=args.beta,
-                                          cutoff_top_n=args.cutoff_top_n, cutoff_prob=args.cutoff_prob,
-                                          beam_width=args.beam_width, num_processes=args.lm_workers)
-        else:
-            self.decoder = GreedyDecoder(self.labels, blank_index=self.labels.index('_'))
-
-        self.audio_cache = {}
-
-    def transcribe_audio(self, filepath, duration=10, offset=0):
-        if filepath not in self.audio_cache:
-            self.audio_cache[filepath] = deepspeech.data.data_loader.load_audio(filepath)  # [NumFrames x 1] numpy array
-
-        start_frame = int(offset * self.audio_conf['sample_rate'])
-        end_frame = int((offset+duration) * self.audio_conf['sample_rate'])
-        audio_data = self.audio_cache[filepath][start_frame:end_frame]
-        spect = self.parser.parse_np_audio_data(audio_data).contiguous()
-        spect = spect.view(1, 1, spect.size(0), spect.size(1))
-        out = self.model(Variable(spect, volatile=True))
-        out = out.transpose(0, 1)  # TxNxH
-        decoded_output, decoded_offsets = self.decoder.decode(out.data)
-        # print(json.dumps(transcribe.decode_results(decoded_output, decoded_offsets)))
-        return transcribe.decode_results(decoded_output, decoded_offsets, self.model, self.args)['output'][0]['transcription']
+# class DeepSpeech2Transcriber(object):
+#     def __init__(self, args):
+#         self.model = DeepSpeech.load_model(args.model_path, cuda=False)
+#         self.model.eval()
+#
+#         self.labels = DeepSpeech.get_labels(self.model)
+#         self.audio_conf = DeepSpeech.get_audio_conf(self.model)
+#         self.parser = deepspeech.data.data_loader.SpectrogramParser(self.audio_conf, normalize=True)
+#         self.args = args
+#         if args.decoder == "beam":
+#             from deepspeech.decoder import BeamCTCDecoder
+#
+#             self.decoder = BeamCTCDecoder(self.labels, lm_path=args.lm_path, alpha=args.alpha, beta=args.beta,
+#                                           cutoff_top_n=args.cutoff_top_n, cutoff_prob=args.cutoff_prob,
+#                                           beam_width=args.beam_width, num_processes=args.lm_workers)
+#         else:
+#             self.decoder = GreedyDecoder(self.labels, blank_index=self.labels.index('_'))
+#
+#         self.audio_cache = {}
+#
+#     def transcribe_audio(self, filepath, duration=10, offset=0):
+#         if filepath not in self.audio_cache:
+#             self.audio_cache[filepath] = deepspeech.data.data_loader.load_audio(filepath)  # [NumFrames x 1] numpy array
+#
+#         start_frame = int(offset * self.audio_conf['sample_rate'])
+#         end_frame = int((offset+duration) * self.audio_conf['sample_rate'])
+#         audio_data = self.audio_cache[filepath][start_frame:end_frame]
+#         spect = self.parser.parse_np_audio_data(audio_data).contiguous()
+#         spect = spect.view(1, 1, spect.size(0), spect.size(1))
+#         out = self.model(Variable(spect, volatile=True))
+#         out = out.transpose(0, 1)  # TxNxH
+#         decoded_output, decoded_offsets = self.decoder.decode(out.data)
+#         # print(json.dumps(transcribe.decode_results(decoded_output, decoded_offsets)))
+#         return transcribe.decode_results(decoded_output, decoded_offsets, self.model, self.args)['output'][0]['transcription']
 
 
 class GoogleTranscriber(object):

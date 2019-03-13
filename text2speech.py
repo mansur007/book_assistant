@@ -1,8 +1,8 @@
+import subprocess
 import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=\
     "/data/pycharm_projects/audiobook_assistant/audiobook-assistant-9703181ebcfe.json"
 from google.cloud import texttospeech
-import subprocess
 
 
 class SpeechSynthesizer(object):

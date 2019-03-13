@@ -2,6 +2,7 @@ from pygame import *
 import numpy as np
 import sys
 
+
 class PLEntry:
     def __init__(self, audio_path):
         self.audio_path = audio_path

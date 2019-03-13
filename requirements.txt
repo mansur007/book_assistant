@@ -6,7 +6,8 @@ python-levenshtein
 aeneas
 pyaudio
 librosa
-
+google-cloud-texttospeech
+nltk
 
 # google tts:
 msgpack

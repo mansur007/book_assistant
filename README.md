@@ -1,6 +1,6 @@
 # Audio Book Assistant - talk to your book
 
-## What does it do?
+## What is it supposed do?
 - Play audio books
 - Wait for a command of the user
     - voice: wait for a keyword (Key Word Spotting, or KWS): *wait*, *hey*, *stop*, *pause*, etc.
@@ -37,33 +37,56 @@
     ! These functions should utilize context to give the most relevant results.  
 
 
+## How to use it
+1) Run assistant.py  
+2) It will ask to specify a folder (with audio books and auxiliary files) -   
+choose "materials"
+3) Press play
+4) You can pause it by pressing "Pause" button or by saying "Assistant"  
+    If you say "assistant" - it should start listening for a command.  
+    If you want to give a command without saying "assistant" - press "Voice command"
+5) To unpause press "Play" or say "Assistant... continue"
 
 ## Progress
 
 - Spotting a command
-    - button press, - Done
+    - "voice command" button press, - Done
     - KWS
         - Detects one keyword: "assistant"
         - Puts audio on pause
         - Activates voice parser
+        *Limitation*: to unpause, user needs to say *"assistant... continue"*
 
-- Understanding user's questions/commands  
-    There are several ways:  
+- Understanding user's questions/commands.  
+    Typical command types:  
+        1) translate `<word>`  
+        2.a) define `<word>`  
+        2.b) what is `<word>`  
+        3) (what is/are) synonim(s) of `<word>`  
+        4) spell out `<word>`  
+        * it should be possible to use "it" instead of `<word>` in case if some function was applied on a `<word>` just now
+        ** same, but without "it", e.g. "translate", "synonims", etc.
+
+    E.g.: "Define voluptuous", - {function: define, operand: voluptuous};  
+          "Translate take a chance into Russian",- {function: translate, operand: take a chance, options: language=Russian};  
+    
+    There are several ways of doing parsing:  
+    
     A) Speech -> [ASR] -> whole command as a sequence of letters and spaces(with timing) ->  
-    -> [parserA] -> (operand as a snippet from context, function, options).  
+    -> [parserA] -> (function, options, operand as a snippet from context).  
     
     parserA is a complex text processor which will compare words in the sequence to the function names and option names.  
-    After finding the letters for a function and options - infer the operand phrase.
-    **Done, but can be improved**
+    After finding the letters for a function and options - infer the operand phrase.  
+    **Done, but can be improved. And options are not supported**
     
     B) Speech -> [ASR] -> whole command as a sequence of phonemes and spaces(with timing)->  
-    -> [parserB] -> (operand as a snippet from context, function, options).  
+    -> [parserB] -> (function, options, operand as a snippet from context).  
     
     parserB is similar to parserA, except that words are made of phonemes.  
     **Not started**.  
     
     C) Speech -> some features(e.g. spectrogram) with timing ->  
-    -> [parserC] -> (operand as a snippet from context, function, options).  
+    -> [parserC] -> (function, options, operand as a snippet from context).  
     
     parserC takes each word's features as input and tries to see whether it matches a command, option,  
     or a snippet from the context.
@@ -80,8 +103,13 @@
             It would be better if next or previous track starts playing immediately after pressing a corresponding button, provided that current track is playing.  
         - *go to* button is not working properly
             - *Play*, *go to 30* - stops, and when *Play* is pressed again - starts from beginning
-            - *Play*, *pause*, *go to 30*, *play* - starts playing from beginning
-            
+            - *Play*, *pause*, *go to 30*, *play* - starts playing from beginning        
+        - TODO:  
+		    i) progress bar that shows progress of the track  
+		    ii) there should be a way to play music from any specified position in time:
+			progress bar should be controllable by mouse
+			and there should be buttons that fastforward or rewind by specified amount of time   
+        
     - playlist. **Done, but can be improved**
         - when user is asked for a directory with audio books - audio books themselves are not shown in the pop up window,
         only the directories that contain them are visible.
@@ -115,8 +143,8 @@
     
         TODO:  
         - POS identification. **Done**
-        - Remove punctuation from target word. **Done**
+        - Remove punctuation from operand word. **Done**
         - Rank meanings and output the most relevant. **Not Started**
         
-    - thesaurus, etc., - to be added
+    - thesaurus, spelling, etc., - to be added
 
