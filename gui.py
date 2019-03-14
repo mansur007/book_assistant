@@ -1,6 +1,5 @@
-import string
+import os, string
 from tkinter import *
-from tkinter.ttk import *
 import threading
 
 import text_processor
@@ -25,22 +24,42 @@ class GUI(threading.Thread):
         self.track_list.selection_set(0)
         self.track_list.activate(0)
         self.prev_button = Button(self.root, text='Prev')
+        self.prev_icon = PhotoImage(master=self.root,
+                                    file='icons/iconfinder_back_126585.png')
+        self.prev_icon = self.prev_icon.subsample(3, 3)
+        self.prev_button.config(image=self.prev_icon)
         self.prev_button.grid(row=0, column=1)
         # prev_button.pack(side=LEFT, fill=X)
 
-        self.play_button = Button(self.root, text='Play')
+        self.play_button = Button(self.root)
+        self.play_icon = PhotoImage(master=self.root,
+                               file='icons/iconfinder_icon-play_211876.png')
+        self.play_icon = self.play_icon.subsample(6,6)
+        self.play_button.config(image=self.play_icon)
         # play_button.pack(side=LEFT, fill=X)
         self.play_button.grid(row=0, column=2)
 
         self.stop_button = Button(self.root, text='Stop')
+        self.stop_icon = PhotoImage(master=self.root,
+                                    file='icons/iconfinder_media-stop_216325.png')
+        self.stop_icon = self.stop_icon.subsample(6, 6)
+        self.stop_button.config(image=self.stop_icon)
         self.stop_button.grid(row=0, column=3)
         # stop_button.pack(side=LEFT, fill=X)
 
         self.next_button = Button(self.root, text='Next')
+        self.next_icon = PhotoImage(master=self.root,
+                                    file='icons/iconfinder_forward_126569.png')
+        self.next_icon = self.next_icon.subsample(6, 6)
+        self.next_button.config(image=self.next_icon)
         self.next_button.grid(row=0, column=4)
         # next_button.pack(side=LEFT, fill=X)
 
         self.pause_button = Button(self.root, text='Pause')
+        self.pause_icon = PhotoImage(master=self.root,
+                                    file='icons/iconfinder_media-pause_216309.png')
+        self.pause_icon = self.pause_icon.subsample(6, 6)
+        self.pause_button.config(image=self.pause_icon)
         self.pause_button.grid(row=0, column=5)
         # pause_button.pack(side=BOTTOM, fill=X)
 
@@ -52,18 +71,18 @@ class GUI(threading.Thread):
         self.get_pos_button.grid(row=1, column=2)
         # get_pos_button.pack(side=LEFT, fill=X)
 
-        self.go_to_button = Button(self.root, text='Go_to(time in sec)')
-        self.go_to_button.grid(row=1, column=3)
-        # go_to_button.pack(side=LEFT, fill=X)
+        # self.go_to_button = Button(self.root, text='Go_to(time in sec)')
+        # self.go_to_button.grid(row=1, column=3)
+        # # go_to_button.pack(side=LEFT, fill=X)
+        #
+        # self.target_time_entry = Entry(self.root)
+        # self.target_time_entry.grid(row=1, column=4, columnspan=2)
 
-        self.target_time_entry = Entry(self.root)
-        self.target_time_entry.grid(row=1, column=4, columnspan=2)
-
-        self.dialogue_box = Text(self.root, wrap=WORD, height=7)
+        self.dialogue_box = Text(self.root, wrap=WORD, height=6)
         self.dialogue_box.configure(font=("Times New Roman", 14))
         self.dialogue_box.grid(row=3, columnspan=5)
 
-        self.transcription_box = Text(self.root, wrap=WORD, height=15)
+        self.transcription_box = Text(self.root, wrap=WORD, height=9)
         self.transcription_box.configure(font=("Times New Roman", 14))
         self.transcription_box.grid(row=4, columnspan=5)
         self.transcription_scrollbar = Scrollbar(self.root, orient="vertical", command=self.transcription_box.yview)
@@ -83,7 +102,7 @@ class GUI(threading.Thread):
         self.pause_button.bind("<Button-1>", self.pause_track)
         self.transcribe_button.bind("<Button-1>", self.transcribe_recent)
         self.get_pos_button.bind("<Button-1>", self.get_pos)
-        self.go_to_button.bind("<Button-1>", self.go_to)
+        # self.go_to_button.bind("<Button-1>", self.go_to)
         self.speak_button.bind("<Button-1>", self.parse_voice)
         self.show_recent_words_button.bind("<Button-1>", self.show_recent_words)
 
