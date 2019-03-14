@@ -23,82 +23,73 @@ class GUI(threading.Thread):
             self.track_list.insert(END, item.audio_path)
         self.track_list.selection_set(0)
         self.track_list.activate(0)
-        self.prev_button = Button(self.root, text='Prev')
+
+        self.icon_buttons = Frame(self.root)  # will hold buttons with icons
+        self.icon_buttons.grid(row=0, column=1)
+        self.text_buttons = Frame(self.root)
+        self.text_buttons.grid(row=1, column=1)
+
+        self.prev_button = Button(self.icon_buttons, text='Prev')
         self.prev_icon = PhotoImage(master=self.root,
                                     file='icons/iconfinder_back_126585.png')
         self.prev_icon = self.prev_icon.subsample(3, 3)
         self.prev_button.config(image=self.prev_icon)
         self.prev_button.grid(row=0, column=1)
 
-        self.play_button = Button(self.root)
+        self.play_button = Button(self.icon_buttons)
         self.play_icon = PhotoImage(master=self.root,
                                file='icons/iconfinder_icon-play_211876.png')
         self.play_icon = self.play_icon.subsample(6,6)
         self.play_button.config(image=self.play_icon)
         self.play_button.grid(row=0, column=2)
 
-        self.pause_button = Button(self.root, text='Pause')
+        self.pause_button = Button(self.icon_buttons)
         self.pause_icon = PhotoImage(master=self.root,
                                      file='icons/iconfinder_media-pause_216309.png')
         self.pause_icon = self.pause_icon.subsample(6, 6)
         self.pause_button.config(image=self.pause_icon)
         self.pause_button.grid(row=0, column=3)
 
-        self.stop_button = Button(self.root, text='Stop')
+        self.stop_button = Button(self.icon_buttons)
         self.stop_icon = PhotoImage(master=self.root,
                                     file='icons/iconfinder_media-stop_216325.png')
         self.stop_icon = self.stop_icon.subsample(6, 6)
         self.stop_button.config(image=self.stop_icon)
         self.stop_button.grid(row=0, column=4)
 
-        self.next_button = Button(self.root, text='Next')
+        self.next_button = Button(self.icon_buttons)
         self.next_icon = PhotoImage(master=self.root,
                                     file='icons/iconfinder_forward_126569.png')
         self.next_icon = self.next_icon.subsample(6, 6)
         self.next_button.config(image=self.next_icon)
         self.next_button.grid(row=0, column=5)
 
-        # self.transcribe_button = Button(self.root, text='Transcribe')
-        # self.transcribe_button.grid(row=1, column=1)
+        self.show_recent_words_button = Button(self.text_buttons, text='Show Recent Words')
+        self.show_recent_words_button.grid(row=0, column=0)
 
-        # self.get_pos_button = Button(self.root, text='Get_Pos')
-        # self.get_pos_button.grid(row=1, column=2)
-
-        # self.go_to_button = Button(self.root, text='Go_to(time in sec)')
-        # self.go_to_button.grid(row=1, column=3)
-        #
-        # self.target_time_entry = Entry(self.root)
-        # self.target_time_entry.grid(row=1, column=4, columnspan=2)
-
-        self.dialogue_box = Text(self.root, wrap=WORD, height=6)
-        self.dialogue_box.configure(font=("Times New Roman", 14))
-        self.dialogue_box.grid(row=3, columnspan=4)
-
-        self.transcription_box = Text(self.root, wrap=WORD, height=9)
-        self.transcription_box.configure(font=("Times New Roman", 14))
-        self.transcription_box.grid(row=4, columnspan=4)
-        self.transcription_scrollbar = Scrollbar(self.root, orient="vertical", command=self.transcription_box.yview)
-        self.transcription_box.configure(yscrollcommand=self.transcription_scrollbar.set)
-        self.transcription_scrollbar.grid(row=4, column=5)
-
-        self.show_recent_words_button = Button(self.root, text='Show Recent Words')
-        self.show_recent_words_button.grid(row=2, column=3)
-
-        self.speak_button = Button(self.root, text='Voice Command')
-        self.speak_button.grid(row=2, column=2)
+        self.speak_button = Button(self.text_buttons, text='Voice Command')
+        self.speak_button.grid(row=0, column=1)
 
         self.play_button.bind("<Button-1>", self.play_track)
         self.stop_button.bind("<Button-1>", self.stop_track)
         self.next_button.bind("<Button-1>", self.next_track)
         self.prev_button.bind("<Button-1>", self.prev_track)
         self.pause_button.bind("<Button-1>", self.pause_track)
-        # self.transcribe_button.bind("<Button-1>", self.transcribe_recent)
-        # self.get_pos_button.bind("<Button-1>", self.get_pos)
-        # self.go_to_button.bind("<Button-1>", self.go_to)
         self.speak_button.bind("<Button-1>", self.parse_voice)
         self.show_recent_words_button.bind("<Button-1>", self.show_recent_words)
 
-        # making sure that first utterance shows up:
+        self.dialogue_box = Text(self.root, wrap=WORD, height=8, width=64)
+        self.dialogue_box.configure(font=("Times New Roman", 14))
+        self.dialogue_box.grid(row=3, columnspan=2)
+
+        self.transcription_box = Text(self.root, wrap=WORD, height=18, width=64)
+        self.transcription_box.configure(font=("Times New Roman", 14))
+        self.transcription_box.grid(row=4, columnspan=2)
+        self.transcription_scrollbar = Scrollbar(self.root, orient="vertical", command=self.transcription_box.yview)
+        self.transcription_box.configure(yscrollcommand=self.transcription_scrollbar.set)
+        self.transcription_scrollbar.grid(row=4, column=3)
+
+        # making sure that a script for the first utterance shows up:
         self.cur_interval_start = -0.001
         self.cur_interval_end = 0
 
