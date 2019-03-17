@@ -14,10 +14,12 @@ class GUI(threading.Thread):
         self.D = D  # dictionary
         self.dictionaryVoice = text2speech.SpeechSynthesizer(lang_code='en-US', name='en-US-Wavenet-B')
         self.translatorVoice = text2speech.SpeechSynthesizer(lang_code='ru-RU', name='ru-RU-Wavenet-C')
+        self.button_borderwidth=3
 
         self.TranscriptDuration = TranscriptDuration
         self.root = Tk()
         self.track_list = Listbox(self.root, selectmode=SINGLE)  # visual representation of playlist
+        self.track_list.config(font=("Times New Roman", 10), borderwidth=3, width=35)
         self.track_list.grid(row=0, rowspan=2)
         for item in PL.entry_list:
             self.track_list.insert(END, item.audio_path)
@@ -33,41 +35,43 @@ class GUI(threading.Thread):
         self.prev_icon = PhotoImage(master=self.root,
                                     file='icons/iconfinder_back_126585.png')
         self.prev_icon = self.prev_icon.subsample(3, 3)
-        self.prev_button.config(image=self.prev_icon)
+        self.prev_button.config(image=self.prev_icon, borderwidth=self.button_borderwidth)
         self.prev_button.grid(row=0, column=1)
 
         self.play_button = Button(self.icon_buttons)
         self.play_icon = PhotoImage(master=self.root,
                                file='icons/iconfinder_icon-play_211876.png')
         self.play_icon = self.play_icon.subsample(6,6)
-        self.play_button.config(image=self.play_icon)
+        self.play_button.config(image=self.play_icon, borderwidth=self.button_borderwidth)
         self.play_button.grid(row=0, column=2)
 
         self.pause_button = Button(self.icon_buttons)
         self.pause_icon = PhotoImage(master=self.root,
                                      file='icons/iconfinder_media-pause_216309.png')
         self.pause_icon = self.pause_icon.subsample(6, 6)
-        self.pause_button.config(image=self.pause_icon)
+        self.pause_button.config(image=self.pause_icon, borderwidth=self.button_borderwidth)
         self.pause_button.grid(row=0, column=3)
 
         self.stop_button = Button(self.icon_buttons)
         self.stop_icon = PhotoImage(master=self.root,
                                     file='icons/iconfinder_media-stop_216325.png')
         self.stop_icon = self.stop_icon.subsample(6, 6)
-        self.stop_button.config(image=self.stop_icon)
+        self.stop_button.config(image=self.stop_icon, borderwidth=self.button_borderwidth)
         self.stop_button.grid(row=0, column=4)
 
         self.next_button = Button(self.icon_buttons)
         self.next_icon = PhotoImage(master=self.root,
                                     file='icons/iconfinder_forward_126569.png')
         self.next_icon = self.next_icon.subsample(6, 6)
-        self.next_button.config(image=self.next_icon)
+        self.next_button.config(image=self.next_icon, borderwidth=self.button_borderwidth)
         self.next_button.grid(row=0, column=5)
 
         self.show_recent_words_button = Button(self.text_buttons, text='Show Recent Words')
+        self.show_recent_words_button.config(font=("Times New Roman", 10), borderwidth=self.button_borderwidth)
         self.show_recent_words_button.grid(row=0, column=0)
 
         self.speak_button = Button(self.text_buttons, text='Voice Command')
+        self.speak_button.config(font=("Times New Roman", 10), borderwidth=self.button_borderwidth)
         self.speak_button.grid(row=0, column=1)
 
         self.play_button.bind("<Button-1>", self.play_track)
@@ -79,15 +83,15 @@ class GUI(threading.Thread):
         self.show_recent_words_button.bind("<Button-1>", self.show_recent_words)
 
         self.dialogue_box = Text(self.root, wrap=WORD, height=8, width=64)
-        self.dialogue_box.configure(font=("Times New Roman", 14))
+        self.dialogue_box.configure(font=("Times New Roman", 14), borderwidth=4)
         self.dialogue_box.grid(row=3, columnspan=2)
 
         self.transcription_box = Text(self.root, wrap=WORD, height=18, width=64)
-        self.transcription_box.configure(font=("Times New Roman", 14))
+        self.transcription_box.configure(font=("Times New Roman", 14), borderwidth=4)
         self.transcription_box.grid(row=4, columnspan=2)
         self.transcription_scrollbar = Scrollbar(self.root, orient="vertical", command=self.transcription_box.yview)
         self.transcription_box.configure(yscrollcommand=self.transcription_scrollbar.set)
-        self.transcription_scrollbar.grid(row=4, column=3)
+        self.transcription_scrollbar.grid(row=4, column=3, sticky='ns')
 
         # making sure that a script for the first utterance shows up:
         self.cur_interval_start = -0.001

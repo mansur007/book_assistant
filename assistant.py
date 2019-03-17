@@ -7,6 +7,7 @@ import transcriber
 import dictionary
 
 from wakeword_detector import WWDetector
+import tkinter as tk
 from gui import GUI
 
 
@@ -37,6 +38,11 @@ wwd_args = parser.parse_args()
 def ask_playlist(pl):
     # asks directory of a playlist and makes list of songs from it;
     # pl is a player.Playlist instance
+
+    # following 2 lines are for avoiding appearance of the root window that is not used
+    root = tk.Tk()
+    root.withdraw()
+
     directory = askdirectory()
     os.chdir(directory)
 
