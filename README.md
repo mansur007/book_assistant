@@ -45,17 +45,17 @@ choose "materials"
 4) You can pause it by pressing "Pause" button or by saying "Assistant"  
     If you say "assistant" - it should start listening for a command.  
     If you want to give a command without saying "assistant" - press "Voice command"
-5) To unpause press "Play" or say "Assistant... continue"
+5) To unpause press "Play" or say "continue"
 
 ## Progress
 
 - Spotting a command
-    - "voice command" button press, - Done
+    - press a button
     - KWS
-        - Detects one keyword: "assistant"
-        - Puts audio on pause
-        - Activates voice parser
-        *Limitation*: to unpause, user needs to say *"assistant... continue"*
+        - Detects 2 keywords: "assistant", "continue"
+        - "assistant" puts audio on pause and activates voice parser
+        - voice parser listens to user's command
+        - to unpause the audio, user needs to say "continue"
 
 - Understanding user's questions/commands.  
     Typical command types:  

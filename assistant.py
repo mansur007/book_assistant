@@ -13,8 +13,10 @@ from gui import GUI
 
 parser = argparse.ArgumentParser(description='wakeword detection')
 porcupine_root = '/data/soft/Porcupine/'  # will be useful for specifying paths
+kwpath_assistant = os.path.join(porcupine_root, 'assistant_linux.ppn')
+kwpath_continue = os.path.join(porcupine_root, 'continue_linux.ppn')
 parser.add_argument('--keyword_file_paths', help='comma-separated absolute paths to keyword files', type=str,
-                    default=os.path.join(porcupine_root, 'assistant_linux.ppn'))  # ! default wakeword is "assistant"
+                    default=', '.join([kwpath_assistant, kwpath_continue]))  # ! default wakeword is "assistant"
 parser.add_argument(
     '--library_path',
     help="absolute path to Porcupine's dynamic library", type=str,

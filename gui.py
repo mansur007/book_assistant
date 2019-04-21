@@ -85,6 +85,9 @@ class GUI(threading.Thread):
         self.dialogue_box = Text(self.root, wrap=WORD, height=8, width=64)
         self.dialogue_box.configure(font=("Times New Roman", 14), borderwidth=4)
         self.dialogue_box.grid(row=3, columnspan=2)
+        self.dialogue_box_scrollbar = Scrollbar(self.root, orient="vertical", command=self.dialogue_box.yview)
+        self.dialogue_box.configure(yscrollcommand=self.dialogue_box_scrollbar.set)
+        self.dialogue_box_scrollbar.grid(row=3, column=3, sticky='ns')
 
         self.transcription_box = Text(self.root, wrap=WORD, height=18, width=64)
         self.transcription_box.configure(font=("Times New Roman", 14), borderwidth=4)

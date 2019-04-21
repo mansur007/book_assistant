@@ -101,6 +101,12 @@ class WWDetector(Thread):
                     self.gui.parse_voice()
                 elif num_keywords > 1 and result >= 0:
                     print('[%s] detected %s' % (str(datetime.now()), keyword_names[result]))
+                    if keyword_names[result] == 'assistant':
+                        self.gui.pause_track()
+                        self.gui.parse_voice()
+                    elif keyword_names[result] == 'continue':
+                        self.gui.play_track()
+
 
         except KeyboardInterrupt:
             print('stopping ...')
