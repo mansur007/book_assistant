@@ -1,6 +1,6 @@
-# Audio Book Assistant - talk to your book
-
-## What is it supposed do?
+# Audio Book Assistant - talk to your book (project is under development)  
+Video demo: https://www.youtube.com/watch?v=kBFzHL0LAOA  
+## What is it supposed do?  
 - Play audio books
 - Wait for a command of the user
     - voice: wait for a keyword (Key Word Spotting, or KWS): *wait*, *hey*, *stop*, *pause*, etc.
